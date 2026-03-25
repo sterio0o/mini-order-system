@@ -1,0 +1,5 @@
+rootProject.name = 'mini-order-system'
+
+include 'order-service'
+include 'payment-service'
+include 'notification-service'
