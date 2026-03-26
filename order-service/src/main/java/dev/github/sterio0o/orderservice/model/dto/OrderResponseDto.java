@@ -17,7 +17,7 @@ public record OrderResponseDto(
     public static OrderResponseDto fromEntity(Order order) {
         return new OrderResponseDto(
                 order.getCustomerEmail(),
-                order.getProduct(),
+                order.getProduct().getProductName(),
                 order.getQuantity(),
                 order.getAmount(),
                 order.getStatus(),
