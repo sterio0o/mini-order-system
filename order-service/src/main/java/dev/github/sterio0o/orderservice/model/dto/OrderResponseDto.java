@@ -8,13 +8,17 @@ import java.time.LocalDateTime;
 
 public record OrderResponseDto(
         String customerEmail,
+        String product,
+        Integer quantity,
         BigDecimal amount,
         OrderStatus status,
         LocalDateTime createdAt
 ) {
-    private static OrderResponseDto fromEntity(Order order) {
+    public static OrderResponseDto fromEntity(Order order) {
         return new OrderResponseDto(
                 order.getCustomerEmail(),
+                order.getProduct(),
+                order.getQuantity(),
                 order.getAmount(),
                 order.getStatus(),
                 order.getCreatedAt()
