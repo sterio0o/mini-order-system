@@ -1,6 +1,6 @@
 package dev.github.sterio0o.orderservice.service;
 
-import dev.github.sterio0o.orderservice.event.OrderCreatedEvent;
+import dev.github.sterio0o.common.events.OrderCreatedEvent;
 import dev.github.sterio0o.orderservice.exception.OrderNotFoundException;
 import dev.github.sterio0o.orderservice.exception.ProductNotFoundException;
 import dev.github.sterio0o.orderservice.kafka.KafkaProducer;
@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.UUID;
 
 @Service
