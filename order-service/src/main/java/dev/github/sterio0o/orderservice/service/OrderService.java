@@ -38,9 +38,6 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDto createOrder(OrderRequestDto requestDto) {
-        List<Product> allProduct = productRepository.findAll();
-        log.info("All products in DB: {}", allProduct.size());
-
         log.info("createOrder for email: {}", requestDto.customerEmail());
         Product product = productRepository.findByProductName(requestDto.productName())
                 .orElseThrow(() -> new ProductNotFoundException(
