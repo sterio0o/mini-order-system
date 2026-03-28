@@ -14,10 +14,10 @@ import dev.github.sterio0o.orderservice.repository.ProductRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -38,10 +38,13 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDto createOrder(OrderRequestDto requestDto) {
+        List<Product> allProduct = productRepository.findAll();
+        log.info("All products in DB: {}", allProduct.size());
+
         log.info("createOrder for email: {}", requestDto.customerEmail());
-        Product product = productRepository.findByName(requestDto.product())
+        Product product = productRepository.findByProductName(requestDto.productName())
                 .orElseThrow(() -> new ProductNotFoundException(
-                        "Product with name=" + requestDto.product() + " not found"
+                        "Product with name=" + requestDto.productName() + " not found"
                 )
         );
 

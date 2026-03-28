@@ -32,6 +32,7 @@ public class Order {
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private OrderStatus status;
 
