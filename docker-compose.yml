@@ -1,0 +1,63 @@
+services:
+  postgres-order:
+    image: postgres:15-alpine
+    container_name: postgres-order
+    environment:
+      POSTGRES_DB: order-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-order-data:/var/lib/postgresql/data
+      - ./init-scripts/:/docker-entrypoint-initdb.d/
+    networks:
+      - app-network
+
+  order-kafka:
+    image: apache/kafka:3.7.0
+    container_name: order-kafka
+    hostname: order-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      # Обязательные настройки
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+
+      # QUORUM контроллеров
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@order-kafka:9091
+
+      # Настройки кластера
+      - CLUSTER_ID=2f55f108-e2c0-45e2-9292-23d9a55e464b
+
+      # Интрефейсы/порты которые присваиваем серверу
+      #- KAFKA_LISTENERS=PLAINTEXT://:9090,CONTROLLER://:9091,EXTERNAL://:9092
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9090,CONTROLLER://0.0.0.0:9091,EXTERNAL://0.0.0.0:9092
+      # PLAINTEXT - внутреняя комуникация между брокерами
+      # CONTROLLER - для KRaft
+      # EXTERNAL - для внешних клиентов
+
+      # Указываем порт по которому внешний клиент сможет достучаться к брокеру
+      #- KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://order-kafka:9090,EXTERNAL://${HOSTNAME:-localhost}:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://order-kafka:9090,EXTERNAL://localhost:9092
+
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+
+      - KAFKA_LOG_DIRS=/opt/kafka/data
+    volumes:
+      # Путь к folder куда будут сохранены данные, чтобы не потерять их в случае удаления контейнера/:/ откуда будут браться данные
+      - order-kafka:/opt/kafka/data
+    user: "root"
+    networks:
+      - app-network
+
+volumes:
+  postgres-order-data:
+  order-kafka:
+
+networks:
+  app-network:
+    driver: bridge

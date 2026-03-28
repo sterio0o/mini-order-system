@@ -3,6 +3,7 @@ package dev.github.sterio0o.orderservice.service;
 import dev.github.sterio0o.orderservice.event.OrderCreatedEvent;
 import dev.github.sterio0o.orderservice.exception.OrderNotFoundException;
 import dev.github.sterio0o.orderservice.exception.ProductNotFoundException;
+import dev.github.sterio0o.orderservice.kafka.KafkaProducer;
 import dev.github.sterio0o.orderservice.model.dto.OrderRequestDto;
 import dev.github.sterio0o.orderservice.model.dto.OrderResponseDto;
 import dev.github.sterio0o.orderservice.model.entities.Order;
@@ -25,7 +26,7 @@ import java.util.UUID;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaProducer kafkaProducer;
 
     public OrderResponseDto getOrderById(UUID id) {
         log.info("getOrderById: {}", id);
@@ -65,7 +66,7 @@ public class OrderService {
         );
 
         log.info("Kafka: order-created-event {}", event);
-        kafkaTemplate.send("order-created-event", event.orderId());
+        kafkaProducer.sendEvent(event);
 
         return OrderResponseDto.fromEntity(savedOrder);
     }

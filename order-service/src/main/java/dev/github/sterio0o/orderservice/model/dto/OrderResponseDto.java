@@ -5,8 +5,10 @@ import dev.github.sterio0o.orderservice.model.entities.OrderStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record OrderResponseDto(
+        UUID id,
         String customerEmail,
         String product,
         Integer quantity,
@@ -16,6 +18,7 @@ public record OrderResponseDto(
 ) {
     public static OrderResponseDto fromEntity(Order order) {
         return new OrderResponseDto(
+                order.getId(),
                 order.getCustomerEmail(),
                 order.getProduct().getProductName(),
                 order.getQuantity(),
