@@ -1,6 +1,6 @@
 package dev.github.sterio0o.orderservice.kafka;
 
-import dev.github.sterio0o.orderservice.event.OrderCreatedEvent;
+import dev.github.sterio0o.common.events.OrderCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;

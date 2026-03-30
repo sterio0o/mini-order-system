@@ -1,9 +1,4 @@
-package dev.github.sterio0o.orderservice.event;
-
-import dev.github.sterio0o.orderservice.model.entities.Product;
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+package dev.github.sterio0o.common.events;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -15,5 +10,4 @@ public record OrderCreatedEvent(
         Integer quantity,
         BigDecimal amount
 ) {
-
 }
