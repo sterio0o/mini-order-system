@@ -39,7 +39,7 @@ public class PaymentService {
             if (success) {
                 processPayment(payment);
             } else {
-                refundPayment(payment);
+                failedPayment(payment);
             }
 
         } catch (InterruptedException e) {
@@ -69,6 +69,16 @@ public class PaymentService {
 
         payment.setPaymentStatus(PaymentStatus.COMPLETED);
         payment.setPaidAt(LocalDateTime.now());
+        payment.setUpdatedAt(LocalDateTime.now());
+
+        Payment savedPayment = paymentRepository.save(payment);
+        sendPaymentProcessingEvent(savedPayment);
+    }
+
+    private void failedPayment(Payment payment) {
+        log.info("Failed payment ID={}", payment.getId());
+
+        payment.setPaymentStatus(PaymentStatus.FAILED);
         payment.setUpdatedAt(LocalDateTime.now());
 
         Payment savedPayment = paymentRepository.save(payment);
