@@ -21,6 +21,11 @@ public class MailSenderService {
         log.info("Received payment event for order: {}", event.orderId());
 
         String to = event.email();
+        if (to == null || to.isBlank()) {
+            log.error("Email is null or empty for order: {}", event.orderId());
+            return;
+        }
+
         String subject = createSubject(event);
         String body = createBody(event);
 
@@ -28,13 +33,18 @@ public class MailSenderService {
     }
 
     public void sendEmail(String to, String subject, String body) {
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(to);
-        mailMessage.setFrom(from);
-        mailMessage.setSubject(subject);
-        mailMessage.setText(body);
+        try {
+            SimpleMailMessage mailMessage = new SimpleMailMessage();
+            mailMessage.setTo(to);
+            mailMessage.setFrom(from);
+            mailMessage.setSubject(subject);
+            mailMessage.setText(body);
 
-        mailSender.send(mailMessage);
+            mailSender.send(mailMessage);
+            log.info("Email sent successfully to {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send email to {}", to, e);
+        }
     }
 
     private String createSubject(PaymentProcessingEvent event) {
