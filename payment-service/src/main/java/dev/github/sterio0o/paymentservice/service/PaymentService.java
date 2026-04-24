@@ -6,6 +6,7 @@ import dev.github.sterio0o.paymentservice.kafka.KafkaProducer;
 import dev.github.sterio0o.paymentservice.model.entity.Payment;
 import dev.github.sterio0o.paymentservice.model.entity.PaymentStatus;
 import dev.github.sterio0o.paymentservice.repository.PaymentRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,13 @@ public class PaymentService {
         Главный метод ответственный за весь платеж
         Из order-service приходит событие на оплату, этот метод вызывается и управляет всем созданием платежа
      */
+    @Transactional
     public void paymentProcessing(OrderCreatedEvent event) {
+        if (paymentRepository.existsByOrderId(event.orderId())) {
+            log.info("Order {} already processed", event.orderId());
+            return;
+        }
+
         String email = event.customerEmail();
         Payment payment = createPayment(event);
 

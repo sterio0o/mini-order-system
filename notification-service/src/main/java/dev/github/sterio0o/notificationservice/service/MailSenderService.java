@@ -98,7 +98,7 @@ public class MailSenderService {
                     
                     Payment status: %s
                     Amount: $%.2f
-                    """, event.orderId(), event.paymentId(), event.amount());
+                    """, event.orderId(), event.paymentStatus(), event.amount());
         };
     }
 }
