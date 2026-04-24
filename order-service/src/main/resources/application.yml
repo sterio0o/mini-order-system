@@ -1,3 +1,7 @@
+jwt:
+  secret: ${JWT_SECRET:mySuperSecretKeyThatIsAtLeast32CharsLong12345!}
+  expiration: 86400000
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/order-db
