@@ -6,6 +6,7 @@ import dev.github.sterio0o.paymentservice.kafka.KafkaProducer;
 import dev.github.sterio0o.paymentservice.model.entity.Payment;
 import dev.github.sterio0o.paymentservice.model.entity.PaymentStatus;
 import dev.github.sterio0o.paymentservice.repository.PaymentRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,14 @@ public class PaymentService {
         Главный метод ответственный за весь платеж
         Из order-service приходит событие на оплату, этот метод вызывается и управляет всем созданием платежа
      */
+    @Transactional
     public void paymentProcessing(OrderCreatedEvent event) {
+        if (paymentRepository.existsByOrderId(event.orderId())) {
+            log.info("Order {} already processed", event.orderId());
+            return;
+        }
+
+        String email = event.customerEmail();
         Payment payment = createPayment(event);
 
         try {
@@ -37,9 +45,9 @@ public class PaymentService {
             boolean success = paymentGateway.process();
 
             if (success) {
-                processPayment(payment);
+                processPayment(payment, email);
             } else {
-                failedPayment(payment);
+                failedPayment(payment, email);
             }
 
         } catch (InterruptedException e) {
@@ -64,7 +72,7 @@ public class PaymentService {
         return savedPayment;
     }
 
-    private void processPayment(Payment payment) {
+    private void processPayment(Payment payment, String email) {
         log.info("Process payment ID={}", payment.getId());
 
         payment.setPaymentStatus(PaymentStatus.COMPLETED);
@@ -72,33 +80,34 @@ public class PaymentService {
         payment.setUpdatedAt(LocalDateTime.now());
 
         Payment savedPayment = paymentRepository.save(payment);
-        sendPaymentProcessingEvent(savedPayment);
+        sendPaymentProcessingEvent(savedPayment, email);
     }
 
-    private void failedPayment(Payment payment) {
+    private void failedPayment(Payment payment, String email) {
         log.info("Failed payment ID={}", payment.getId());
 
         payment.setPaymentStatus(PaymentStatus.FAILED);
         payment.setUpdatedAt(LocalDateTime.now());
 
         Payment savedPayment = paymentRepository.save(payment);
-        sendPaymentProcessingEvent(savedPayment);
+        sendPaymentProcessingEvent(savedPayment, email);
     }
 
-    private void refundPayment(Payment payment) {
+    private void refundPayment(Payment payment, String email) {
         log.info("Refund payment ID={}", payment.getId());
 
         payment.setPaymentStatus(PaymentStatus.REFUNDED);
         payment.setUpdatedAt(LocalDateTime.now());
 
         Payment savedPayment = paymentRepository.save(payment);
-        sendPaymentProcessingEvent(savedPayment);
+        sendPaymentProcessingEvent(savedPayment, email);
     }
 
-    private void sendPaymentProcessingEvent(Payment payment) {
+    private void sendPaymentProcessingEvent(Payment payment, String email) {
         PaymentProcessingEvent event = new PaymentProcessingEvent(
                 payment.getId(),
                 payment.getOrderId(),
+                email,
                 payment.getAmount(),
                 payment.getPaymentStatus().toString()
         );

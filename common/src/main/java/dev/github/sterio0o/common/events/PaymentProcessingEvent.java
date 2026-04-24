@@ -6,6 +6,7 @@ import java.util.UUID;
 public record PaymentProcessingEvent(
         UUID paymentId,
         UUID orderId,
+        String email,
         BigDecimal amount,
         String paymentStatus
 ) {
