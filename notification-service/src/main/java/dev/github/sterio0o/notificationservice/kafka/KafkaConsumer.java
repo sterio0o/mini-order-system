@@ -1,5 +1,6 @@
 package dev.github.sterio0o.notificationservice.kafka;
 
+import dev.github.sterio0o.common.events.DeliveryCreatedEvent;
 import dev.github.sterio0o.common.events.PaymentProcessingEvent;
 import dev.github.sterio0o.notificationservice.service.MailSenderService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,12 @@ public class KafkaConsumer {
     @KafkaListener(topics = "payment-processing-event", groupId = "notification-service")
     public void paymentProcessingListener(PaymentProcessingEvent event) {
         log.info("Kafka сonsumer accepted the event: {}", event);
-        mailSenderService.listener(event);
+        mailSenderService.handlePaymentEvent(event);
+    }
+
+    @KafkaListener(topics = "delivery-created-event", groupId = "notification-service")
+    public void deliveryCreatedListener(DeliveryCreatedEvent event) {
+        log.info("Kafka сonsumer accepted the event: {}", event);
+        mailSenderService.handleDeliveryEvent(event);
     }
 }
