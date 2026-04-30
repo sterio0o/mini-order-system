@@ -36,7 +36,7 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponseDto createOrder(OrderRequestDto requestDto) {
+    public OrderResponseDto createOrder(OrderRequestDto requestDto, UUID userId) {
         log.info("createOrder for email: {}", requestDto.customerEmail());
         Product product = productRepository.findByProductName(requestDto.productName())
                 .orElseThrow(() -> new ProductNotFoundException(
@@ -46,7 +46,8 @@ public class OrderService {
 
         BigDecimal totalAmount = calculateTotalAmount(requestDto.quantity(), product.getPrice());
 
-        Order newOrder = new Order().builder()
+        Order newOrder = Order.builder()
+                .userId(userId)
                 .customerEmail(requestDto.customerEmail())
                 .product(product)
                 .quantity(requestDto.quantity())

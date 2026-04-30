@@ -94,7 +94,7 @@ class OrderServiceTest {
         );
 
         ProductNotFoundException exception = assertThrows(ProductNotFoundException.class, () ->
-                orderService.createOrder(requestDto)
+                orderService.createOrder(requestDto, UUID.randomUUID())
         );
 
         String expectedMessage = "Product with name=" + requestDto.productName() + " not found";

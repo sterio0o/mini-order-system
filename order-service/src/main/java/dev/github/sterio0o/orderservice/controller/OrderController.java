@@ -5,6 +5,8 @@ import dev.github.sterio0o.orderservice.model.dto.OrderResponseDto;
 import dev.github.sterio0o.orderservice.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -18,14 +20,19 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<OrderResponseDto> getOrderById(@PathVariable UUID id) {
         OrderResponseDto order = orderService.getOrderById(id);
         return ResponseEntity.ok(order);
     }
 
     @PostMapping("/create")
-    public ResponseEntity<OrderResponseDto> createOrder(@RequestBody OrderRequestDto requestDto) {
-        OrderResponseDto order = orderService.createOrder(requestDto);
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<OrderResponseDto> createOrder(
+            @RequestBody OrderRequestDto requestDto,
+            @AuthenticationPrincipal String userId
+    ) {
+        OrderResponseDto order = orderService.createOrder(requestDto, UUID.fromString(userId));
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
