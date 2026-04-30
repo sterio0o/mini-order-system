@@ -1,5 +1,6 @@
 package dev.github.sterio0o.notificationservice.service;
 
+import dev.github.sterio0o.common.events.DeliveryCreatedEvent;
 import dev.github.sterio0o.common.events.PaymentProcessingEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,7 @@ public class MailSenderService {
     @Value("${spring.mail.username}")
     private String from;
 
-    public void listener(PaymentProcessingEvent event) {
+    public void handlePaymentEvent(PaymentProcessingEvent event) {
         log.info("Received payment event for order: {}", event.orderId());
 
         String to = event.email();
@@ -30,6 +31,24 @@ public class MailSenderService {
         String body = createBody(event);
 
         sendEmail(to, subject, body);
+    }
+
+    public void handleDeliveryEvent(DeliveryCreatedEvent event) {
+        String subject = "Your order #" + event.orderId();
+        String body = String.format("""
+                Дорогой пользователь,
+                
+                Ваш заказ #%s отправлен!
+                
+                Tracking number: %s
+                Предпологаемая дата доставки: %s
+                Статус заказа: %s
+                
+                Спасибо за покупку!
+                """, event.orderId(), event.trackingNumber(), event.estimatedDeliveryDate(), event.status());
+
+        sendEmail(event.customerEmail(), subject, body);
+        log.info("Delivery notification sent to {}", event.customerEmail());
     }
 
     public void sendEmail(String to, String subject, String body) {
