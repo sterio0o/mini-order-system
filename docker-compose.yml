@@ -1,62 +1,235 @@
-services:
-  postgres-order:
-    image: postgres:15-alpine
-    container_name: postgres-order
-    environment:
-      POSTGRES_DB: order-db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres-order-data:/var/lib/postgresql/data
-      - ./init-scripts/:/docker-entrypoint-initdb.d/
-    networks:
-      - app-network
+version: '3.8'
 
-  order-kafka:
+services:
+  # ==================== KAFKA ====================
+  kafka:
     image: apache/kafka:3.7.0
-    container_name: order-kafka
-    hostname: order-kafka
+    container_name: kafka-broker
+    hostname: kafka
     ports:
       - "9092:9092"
+      - "9091:9091"
     environment:
-      # Обязательные настройки
       - KAFKA_NODE_ID=1
       - KAFKA_PROCESS_ROLES=broker,controller
       - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
-
-      # QUORUM контроллеров
-      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@order-kafka:9091
-
-      # Настройки кластера
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9091
       - CLUSTER_ID=2f55f108-e2c0-45e2-9292-23d9a55e464b
 
-      # Интрефейсы/порты которые присваиваем серверу
-      #- KAFKA_LISTENERS=PLAINTEXT://:9090,CONTROLLER://:9091,EXTERNAL://:9092
       - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9090,CONTROLLER://0.0.0.0:9091,EXTERNAL://0.0.0.0:9092
-      # PLAINTEXT - внутреняя комуникация между брокерами
-      # CONTROLLER - для KRaft
-      # EXTERNAL - для внешних клиентов
-
-      # Указываем порт по которому внешний клиент сможет достучаться к брокеру
-      #- KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://order-kafka:9090,EXTERNAL://${HOSTNAME:-localhost}:9092
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://order-kafka:9090,EXTERNAL://localhost:9092
-
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9090,EXTERNAL://localhost:9092
       - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
       - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
 
       - KAFKA_LOG_DIRS=/opt/kafka/data
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+
+      - KAFKA_NUM_PARTITIONS=3
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=1
     volumes:
-      # Путь к folder куда будут сохранены данные, чтобы не потерять их в случае удаления контейнера/:/ откуда будут браться данные
-      - order-kafka:/opt/kafka/data
-    user: "root"
+      - kafka-data:/opt/kafka/data
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9090", "--list"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  # ==================== POSTGRES DATABASES ====================
+  postgres-user:
+    image: postgres:15-alpine
+    container_name: postgres-user
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-user-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-order:
+    image: postgres:15-alpine
+    container_name: postgres-order
+    environment:
+      POSTGRES_DB: orderdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-order-data:/var/lib/postgresql/data
+      - ./order-service/init-scripts:/docker-entrypoint-initdb.d/
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-payment:
+    image: postgres:15-alpine
+    container_name: postgres-payment
+    environment:
+      POSTGRES_DB: paymentdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres-payment-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-notification:
+    image: postgres:15-alpine
+    container_name: postgres-notification
+    environment:
+      POSTGRES_DB: notificationdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres-notification-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== MICROSERVICES ====================
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-user:5432/userdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9090
+      - JWT_SECRET=${JWT_SECRET:your-256-bit-secret-key-change-in-production-please}
+      - JWT_EXPIRATION=86400000
+      - SERVER_PORT=8080
+    depends_on:
+      postgres-user:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: on-failure
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-order:5432/orderdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9090
+      - JWT_SECRET=${JWT_SECRET:your-256-bit-secret-key-change-in-production-please}
+      - SERVER_PORT=8081
+    depends_on:
+      postgres-order:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+    networks:
+      - app-network
+    restart: on-failure
+
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    container_name: payment-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-payment:5432/paymentdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9090
+      - JWT_SECRET=${JWT_SECRET:your-256-bit-secret-key-change-in-production-please}
+      - SERVER_PORT=8082
+    depends_on:
+      postgres-payment:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      order-service:
+        condition: service_started
+    networks:
+      - app-network
+    restart: on-failure
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-notification:5432/notificationdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9090
+      - SPRING_MAIL_HOST=${MAIL_HOST:smtp.gmail.com}
+      - SPRING_MAIL_PORT=${MAIL_PORT:587}
+      - SPRING_MAIL_USERNAME=${MAIL_USERNAME}
+      - SPRING_MAIL_PASSWORD=${MAIL_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET:your-256-bit-secret-key-change-in-production-please}
+      - SERVER_PORT=8083
+    depends_on:
+      postgres-notification:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      payment-service:
+        condition: service_started
+    networks:
+      - app-network
+    restart: on-failure
 
 volumes:
+  postgres-user-data:
   postgres-order-data:
-  order-kafka:
+  postgres-payment-data:
+  postgres-notification-data:
+  kafka-data:
 
 networks:
   app-network:
