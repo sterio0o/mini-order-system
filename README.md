@@ -35,7 +35,6 @@
   * PostgreSQL
   * Apache Kafka
   * Docker / Docker Compose
-  * Thymeleaf (фронтенд)
 
 # Структура проекта
 
