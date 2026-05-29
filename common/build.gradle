@@ -17,6 +17,11 @@ repositories {
 }
 
 dependencies {
+    // AOP
+    api 'org.springframework.boot:spring-boot-starter-aop'
+    api 'org.aspectj:aspectjweaver:1.9.22'
+    api 'org.aspectj:aspectjrt:1.9.22'
+
     // JWT
     api 'io.jsonwebtoken:jjwt-api:0.12.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
