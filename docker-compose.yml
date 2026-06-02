@@ -88,146 +88,147 @@ services:
     networks:
       - app-network
 
-  postgres-delivery:
-    image: postgres:15-alpine
-    container_name: postgres-delivery
-    environment:
-      POSTGRES_DB: deliverydb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root
-    ports:
-      - "5436:5432"
-    volumes:
-      - postgres-delivery-data:/var/lib/postgresql/data
-    networks:
-      - app-network
+# ВОЗМОЖНО НУЖНО УДАЛИТЬ
+#  postgres-delivery:
+#    image: postgres:15-alpine
+#    container_name: postgres-delivery
+#    environment:
+#      POSTGRES_DB: deliverydb
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: root
+#    ports:
+#      - "5436:5432"
+#    volumes:
+#      - postgres-delivery-data:/var/lib/postgresql/data
+#    networks:
+#      - app-network
 
   # ==================== MICROSERVICES ====================
-  user-service:
-    build:
-      context: ./user-service
-      dockerfile: Dockerfile
-    container_name: user-service
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-user:5432/userdb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=root
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - JWT_SECRET=$${JWT_SECRET:your-256-bit-secret-key-change-in-production-please}
-      - JWT_EXPIRATION=86400000
-      - SERVER_PORT=8080
-    depends_on:
-      - postgres-user
-      - kafka
-    networks:
-      - app-network
-    restart: on-failure
-
-  order-service:
-    build:
-      context: ./order-service
-      dockerfile: Dockerfile
-    container_name: order-service
-    ports:
-      - "8081:8081"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-order:5432/orderdb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=root
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - JWT_SECRET=$${JWT_SECRET:your-256-bit-secret-key-change-in-production-please}
-      - SERVER_PORT=8081
-    depends_on:
-      - postgres-order
-      - kafka
-      - user-service
-    networks:
-      - app-network
-    restart: on-failure
-
-  payment-service:
-    build:
-      context: ./payment-service
-      dockerfile: Dockerfile
-    container_name: payment-service
-    ports:
-      - "8082:8082"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-payment:5432/paymentdb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=root
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - JWT_SECRET=$${JWT_SECRET:your-256-bit-secret-key-change-in-production-please}
-      - SERVER_PORT=8082
-    depends_on:
-      - postgres-payment
-      - kafka
-      - order-service
-    networks:
-      - app-network
-    restart: on-failure
-
-  notification-service:
-    build:
-      context: ./notification-service
-      dockerfile: Dockerfile
-    container_name: notification-service
-    ports:
-      - "8083:8083"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-notification:5432/notificationdb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=root
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - SPRING_MAIL_HOST=$${MAIL_HOST:smtp.gmail.com}
-      - SPRING_MAIL_PORT=$${MAIL_PORT:587}
-      - SPRING_MAIL_USERNAME=$${MAIL_USERNAME}
-      - SPRING_MAIL_PASSWORD=$${MAIL_PASSWORD}
-      - JWT_SECRET=$${JWT_SECRET:your-256-bit-secret-key-change-in-production-please}
-      - SERVER_PORT=8083
-    depends_on:
-      - postgres-notification
-      - kafka
-      - payment-service
-    networks:
-      - app-network
-    restart: on-failure
-
-  delivery-service:
-    build:
-      context: ./delivery-service
-      dockerfile: Dockerfile
-    container_name: delivery-service
-    ports:
-      - "8084:8084"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-delivery:5432/deliverydb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=root
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - JWT_SECRET=$${JWT_SECRET:your-256-bit-secret-key-change-in-production-please}
-      - SERVER_PORT=8084
-    depends_on:
-      - postgres-delivery
-      - kafka
-      - order-service
-    networks:
-      - app-network
-    restart: on-failure
+#  user-service:
+#    build:
+#      context: ./user-service
+#      dockerfile: Dockerfile
+#    container_name: user-service
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-user:5432/userdb
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=root
+#      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+#      - JWT_SECRET=$${JWT_SECRET:your-256-bit-secret-key-change-in-production-please}
+#      - JWT_EXPIRATION=86400000
+#      - SERVER_PORT=8080
+#    depends_on:
+#      - postgres-user
+#      - kafka
+#    networks:
+#      - app-network
+#    restart: on-failure
+#
+#  order-service:
+#    build:
+#      context: ./order-service
+#      dockerfile: Dockerfile
+#    container_name: order-service
+#    ports:
+#      - "8081:8081"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-order:5432/orderdb
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=root
+#      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+#      - JWT_SECRET=$${JWT_SECRET:your-256-bit-secret-key-change-in-production-please}
+#      - SERVER_PORT=8081
+#    depends_on:
+#      - postgres-order
+#      - kafka
+#      - user-service
+#    networks:
+#      - app-network
+#    restart: on-failure
+#
+#  payment-service:
+#    build:
+#      context: ./payment-service
+#      dockerfile: Dockerfile
+#    container_name: payment-service
+#    ports:
+#      - "8082:8082"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-payment:5432/paymentdb
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=root
+#      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+#      - JWT_SECRET=$${JWT_SECRET:your-256-bit-secret-key-change-in-production-please}
+#      - SERVER_PORT=8082
+#    depends_on:
+#      - postgres-payment
+#      - kafka
+#      - order-service
+#    networks:
+#      - app-network
+#    restart: on-failure
+#
+#  notification-service:
+#    build:
+#      context: ./notification-service
+#      dockerfile: Dockerfile
+#    container_name: notification-service
+#    ports:
+#      - "8083:8083"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-notification:5432/notificationdb
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=root
+#      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+#      - SPRING_MAIL_HOST=$${MAIL_HOST:smtp.gmail.com}
+#      - SPRING_MAIL_PORT=$${MAIL_PORT:587}
+#      - SPRING_MAIL_USERNAME=$${MAIL_USERNAME}
+#      - SPRING_MAIL_PASSWORD=$${MAIL_PASSWORD}
+#      - JWT_SECRET=$${JWT_SECRET:your-256-bit-secret-key-change-in-production-please}
+#      - SERVER_PORT=8083
+#    depends_on:
+#      - postgres-notification
+#      - kafka
+#      - payment-service
+#    networks:
+#      - app-network
+#    restart: on-failure
+#
+#  delivery-service:
+#    build:
+#      context: ./delivery-service
+#      dockerfile: Dockerfile
+#    container_name: delivery-service
+#    ports:
+#      - "8084:8084"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-delivery:5432/deliverydb
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=root
+#      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+#      - JWT_SECRET=$${JWT_SECRET:your-256-bit-secret-key-change-in-production-please}
+#      - SERVER_PORT=8084
+#    depends_on:
+#      - postgres-delivery
+#      - kafka
+#      - order-service
+#    networks:
+#      - app-network
+#    restart: on-failure
 
 volumes:
   postgres-user-data:
   postgres-order-data:
   postgres-payment-data:
   postgres-notification-data:
-  postgres-delivery-data:
+  #postgres-delivery-data:
   kafka-data:
 
 networks:

@@ -27,3 +27,12 @@ spring:
             enable: true
           ssl:
             trust: smtp.gmail.com
+
+  datasource:
+    url: jdbc:postgresql://localhost:5435/notificationdb
+    username: postgres
+    password: root
+  kafka:
+    bootstrap-servers: localhost:9092
+server:
+  port: 8083

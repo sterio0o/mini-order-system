@@ -4,10 +4,13 @@ jwt:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/order-db
+    url: jdbc:postgresql://localhost:5433/orderdb
     username: postgres
     password: root
     driver-class-name: org.postgresql.Driver
+
+  kafka:
+    bootstrap-servers: localhost:9092
 
   jpa:
     hibernate:
@@ -19,4 +22,4 @@ spring:
         format_sql: true
 
 server:
-  port: 8080
+  port: 8081

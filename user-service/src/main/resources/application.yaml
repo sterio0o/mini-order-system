@@ -5,3 +5,13 @@ jwt:
 spring:
   security:
     enabled: true
+
+    datasource:
+      url: jdbc:postgresql://localhost:5432/userdb
+      username: postgres
+      password: root
+    kafka:
+      bootstrap-servers: localhost:9092
+
+    server:
+      port: 8080

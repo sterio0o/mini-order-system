@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5434/paymentdb
+    username: postgres
+    password: root
+  kafka:
+    bootstrap-servers: localhost:9092
+
+server:
+  port: 8082
