@@ -1,6 +1,6 @@
-// common/build.gradle
 plugins {
     id 'java-library'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'dev.github.sterio0o'
@@ -17,39 +17,36 @@ repositories {
 }
 
 dependencies {
+    // BOM
+    api platform('org.springframework.boot:spring-boot-dependencies:4.0.0')
+
     // AOP
     api 'org.springframework.boot:spring-boot-starter-aop'
-    api 'org.aspectj:aspectjweaver:1.9.22'
-    api 'org.aspectj:aspectjrt:1.9.22'
+    api 'org.aspectj:aspectjweaver'
+    api 'org.aspectj:aspectjrt'
 
     // JWT
     api 'io.jsonwebtoken:jjwt-api:0.12.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 
-    // Spring Security Core
-    api 'org.springframework.security:spring-security-core:7.0.5'
+    // Spring Security
+    api 'org.springframework.security:spring-security-core'
+    api 'org.springframework.security:spring-security-web'
+    api 'org.springframework.security:spring-security-config'
 
-    // Spring Security Web
-    api 'org.springframework.security:spring-security-web:7.0.4'
-    api 'org.springframework.security:spring-security-config:6.3.5'
+    // Spring Core & Web
+    api 'org.springframework:spring-context'
+    api 'org.springframework:spring-web'
 
-    // Spring Context
-    api 'org.springframework:spring-context:6.2.7'
-
-    // Spring Web
-    api 'org.springframework:spring-web:7.0.6'
-
-    // Servlet API (для фильтров)
-    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+    // Servlet API
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.1.0'
 
     // Lombok
-    compileOnly 'org.projectlombok:lombok:1.18.30'
-    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
-    // Logging
-    implementation 'org.slf4j:slf4j-api:2.0.9'
-
-    // Jackson для JSON
-    api 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
+    // Logging & Jackson
+    implementation 'org.slf4j:slf4j-api'
+    api 'com.fasterxml.jackson.core:jackson-databind'
 }
