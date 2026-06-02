@@ -42,6 +42,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres-user-data:/var/lib/postgresql/data
+      - ./init-scripts/user:/docker-entrypoint-initdb.d/
     networks:
       - app-network
 
@@ -56,7 +57,7 @@ services:
       - "5433:5432"
     volumes:
       - postgres-order-data:/var/lib/postgresql/data
-      - ./order-service/init-scripts:/docker-entrypoint-initdb.d/
+      - ./init-scripts/order:/docker-entrypoint-initdb.d/
     networks:
       - app-network
 
@@ -71,6 +72,7 @@ services:
       - "5434:5432"
     volumes:
       - postgres-payment-data:/var/lib/postgresql/data
+      - ./init-scripts/payment:/docker-entrypoint-initdb.d/
     networks:
       - app-network
 
