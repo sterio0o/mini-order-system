@@ -4,9 +4,11 @@ import dev.github.sterio0o.common.events.OrderCreatedEvent;
 import dev.github.sterio0o.orderservice.exception.OrderNotFoundException;
 import dev.github.sterio0o.orderservice.exception.ProductNotFoundException;
 import dev.github.sterio0o.orderservice.kafka.KafkaProducer;
+import dev.github.sterio0o.orderservice.model.dto.OrderItemRequestDto;
 import dev.github.sterio0o.orderservice.model.dto.OrderRequestDto;
 import dev.github.sterio0o.orderservice.model.dto.OrderResponseDto;
 import dev.github.sterio0o.orderservice.model.entities.Order;
+import dev.github.sterio0o.orderservice.model.entities.OrderItem;
 import dev.github.sterio0o.orderservice.model.entities.OrderStatus;
 import dev.github.sterio0o.orderservice.model.entities.Product;
 import dev.github.sterio0o.orderservice.repository.OrderRepository;
@@ -17,6 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -38,30 +42,43 @@ public class OrderService {
     @Transactional
     public OrderResponseDto createOrder(OrderRequestDto requestDto, UUID userId) {
         log.info("createOrder for email: {}", requestDto.customerEmail());
-        Product product = productRepository.findByProductName(requestDto.productName())
-                .orElseThrow(() -> new ProductNotFoundException(
-                        "Product with name=" + requestDto.productName() + " not found"
-                )
-        );
-
-        BigDecimal totalAmount = calculateTotalAmount(requestDto.quantity(), product.getPrice());
 
         Order newOrder = Order.builder()
                 .userId(userId)
                 .customerEmail(requestDto.customerEmail())
-                .product(product)
-                .quantity(requestDto.quantity())
+                .orderItems(new ArrayList<>())
                 .status(OrderStatus.ORDER_CREATED)
-                .amount(totalAmount)
+                .amount(BigDecimal.ZERO)
                 .build();
+
+        // Обработка каждой позиции заказа
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        for (OrderItemRequestDto item : requestDto.items()) {
+            Product product = productRepository.findByProductName(item.productName())
+                    .orElseThrow(() -> new ProductNotFoundException(
+                                    "Product with name=" + item.productName() + " not found")
+                    );
+
+            BigDecimal priceToOrderItem = BigDecimal.valueOf(product.getPrice())
+                    .multiply(BigDecimal.valueOf(item.quantity()));
+
+            OrderItem orderItem = OrderItem.builder()
+                    .product(product)
+                    .price(priceToOrderItem)
+                    .quantity(item.quantity())
+                    .build();
+
+            newOrder.addOrderItem(orderItem);
+            totalAmount = totalAmount.add(priceToOrderItem);
+        }
+
+        newOrder.setAmount(totalAmount);
 
         Order savedOrder = orderRepository.save(newOrder);
 
         OrderCreatedEvent event = new OrderCreatedEvent(
                 savedOrder.getId(),
                 savedOrder.getCustomerEmail(),
-                savedOrder.getProduct().getId(),
-                savedOrder.getQuantity(),
                 savedOrder.getAmount()
         );
 
@@ -69,15 +86,5 @@ public class OrderService {
         kafkaProducer.sendEvent(event);
 
         return OrderResponseDto.fromEntity(savedOrder);
-    }
-
-    private BigDecimal calculateTotalAmount(Integer quantity, Integer price) {
-        BigDecimal quantityDecimal = new BigDecimal(quantity);
-        BigDecimal priceDecimal = new BigDecimal(price);
-
-        BigDecimal totalAmount = quantityDecimal.multiply(priceDecimal);
-        log.info("CalculateTotalAmount: {}", totalAmount);
-
-        return totalAmount;
     }
 }
