@@ -1,8 +1,15 @@
 rootProject.name = 'mini-order-system'
 
-include 'order-service'
-include 'payment-service'
-include 'notification-service'
-include 'user-service'
-include 'delivery-service'
-include 'common'
+def backendModules = [
+        'order-service',
+        'payment-service',
+        'notification-service',
+        'user-service',
+        'delivery-service',
+        'common'
+]
+
+backendModules.each { moduleName ->
+    include moduleName
+    project(":$moduleName").projectDir = new File(settingsDir, "backend/$moduleName")
+}
