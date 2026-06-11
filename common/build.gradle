@@ -17,27 +17,21 @@ repositories {
 }
 
 dependencies {
-    // BOM
-    api platform('org.springframework.boot:spring-boot-dependencies:4.0.0')
+    // AOP (Версия определится автоматически благодаря плагину)
+    api 'org.springframework:spring-aop'
+    api 'org.aspectj:aspectjweaver:1.9.22.1'
+    api 'org.aspectj:aspectjrt:1.9.22.1'
 
-    // AOP
-    api 'org.springframework.boot:spring-boot-starter-aop'
-    api 'org.aspectj:aspectjweaver'
-    api 'org.aspectj:aspectjrt'
-
-    // JWT
-    api 'io.jsonwebtoken:jjwt-api:0.12.5'
+    // JWT (Оставляем как у вас)
+    api 'io.jsonwebtoken:jjwt-api:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
-    // Spring Security
-    api 'org.springframework.security:spring-security-core'
-    api 'org.springframework.security:spring-security-web'
-    api 'org.springframework.security:spring-security-config'
+    // Spring Security (Версии подставятся автоматически, не пишите :4.0.4)
+    api 'org.springframework.boot:spring-boot-starter-security'
 
-    // Spring Core & Web
-    api 'org.springframework:spring-context'
-    api 'org.springframework:spring-web'
+    // Spring Core & Web (Вместо ручных spring-web лучше использовать стартер)
+    api 'org.springframework.boot:spring-boot-starter-web'
 
     // Servlet API
     compileOnly 'jakarta.servlet:jakarta.servlet-api:6.1.0'
@@ -46,7 +40,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
-    // Logging & Jackson
+    // Logging & Jackson (Версии определятся автоматически)
     implementation 'org.slf4j:slf4j-api'
     api 'com.fasterxml.jackson.core:jackson-databind'
 }
