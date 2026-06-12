@@ -1,17 +1,25 @@
 jwt:
   secret: ${JWT_SECRET:mySuperSecretKeyThatIsAtLeast32CharsLong12345!}
-  expiration: 86400000 # 24 ????
+  expiration: 86400000 # 24 часа
 
 spring:
-  security:
-    enabled: true
+  datasource:
+    url: jdbc:postgresql://localhost:5431/userdb
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
 
-    datasource:
-      url: jdbc:postgresql://localhost:5432/userdb
-      username: postgres
-      password: root
-    kafka:
-      bootstrap-servers: localhost:9092
+  kafka:
+    bootstrap-servers: localhost:9092
 
-    server:
-      port: 8080
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+server:
+  port: 8080
