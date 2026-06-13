@@ -6,9 +6,10 @@ import dev.github.sterio0o.notificationservice.service.MailSenderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-@Service
+@Component
 @Slf4j
 @RequiredArgsConstructor
 public class KafkaConsumer {

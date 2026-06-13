@@ -1,6 +1,7 @@
 package dev.github.sterio0o.orderservice.service;
 
 import dev.github.sterio0o.common.events.OrderCreatedEvent;
+import dev.github.sterio0o.common.events.PaymentProcessingEvent;
 import dev.github.sterio0o.orderservice.exception.OrderNotFoundException;
 import dev.github.sterio0o.orderservice.exception.ProductNotFoundException;
 import dev.github.sterio0o.orderservice.kafka.KafkaProducer;
@@ -47,7 +48,7 @@ public class OrderService {
                 .userId(userId)
                 .customerEmail(requestDto.customerEmail())
                 .orderItems(new ArrayList<>())
-                .status(OrderStatus.ORDER_CREATED)
+                .status(OrderStatus.PENDING_PAYMENT)
                 .amount(BigDecimal.ZERO)
                 .build();
 

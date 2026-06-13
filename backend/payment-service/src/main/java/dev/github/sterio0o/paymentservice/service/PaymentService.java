@@ -28,7 +28,7 @@ public class PaymentService {
         Главный метод ответственный за весь платеж
         Из order-service приходит событие на оплату, этот метод вызывается и управляет всем созданием платежа
      */
-    @Transactional
+
     public void paymentProcessing(OrderCreatedEvent event) {
         if (paymentRepository.existsByOrderId(event.orderId())) {
             log.info("Order {} already processed", event.orderId());
