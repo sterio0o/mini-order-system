@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record OrderCreatedEvent(
+        UUID userId,
         UUID orderId,
         String customerEmail,
         BigDecimal amount

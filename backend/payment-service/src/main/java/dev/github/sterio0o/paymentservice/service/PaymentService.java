@@ -21,14 +21,13 @@ import java.util.UUID;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final PaymentGateway paymentGateway;
+    private final WalletService walletService;
     private final KafkaProducer kafkaProducer;
 
     /*
         Главный метод ответственный за весь платеж
         Из order-service приходит событие на оплату, этот метод вызывается и управляет всем созданием платежа
      */
-
     public void paymentProcessing(OrderCreatedEvent event) {
         if (paymentRepository.existsByOrderId(event.orderId())) {
             log.info("Order {} already processed", event.orderId());
@@ -39,23 +38,12 @@ public class PaymentService {
         Payment payment = createPayment(event);
 
         try {
-            Thread.sleep(2000);
-
-            // Имитация платежа
-            boolean success = paymentGateway.process();
-
-            if (success) {
-                processPayment(payment, email);
-            } else {
-                failedPayment(payment, email);
-            }
-
-        } catch (InterruptedException e) {
+            // Работа с кошельком
+            walletService.paymentTransaction(event.userId(), event.amount());
+            processPayment(payment, email);
+        } catch (Exception e) {
             log.info("Payment ID={} for order ID={} is FAILED", payment.getId(), payment.getOrderId());
-            payment.setPaymentStatus(PaymentStatus.FAILED);
-            paymentRepository.save(payment);
-
-            Thread.currentThread().interrupt();
+            failedPayment(payment, email);
         }
     }
 
@@ -112,6 +100,7 @@ public class PaymentService {
                 payment.getPaymentStatus().toString()
         );
 
+        log.info("PAYMENT-SERVICE: Отправка события payment-processing-event");
         kafkaProducer.sendPaymentProcessingEvent(event);
     }
 }
