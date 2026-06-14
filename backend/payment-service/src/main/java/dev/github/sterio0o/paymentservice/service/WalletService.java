@@ -3,7 +3,7 @@ package dev.github.sterio0o.paymentservice.service;
 import dev.github.sterio0o.paymentservice.exception.NotEnoughMoneyException;
 import dev.github.sterio0o.paymentservice.exception.WalletAlreadyCreatedException;
 import dev.github.sterio0o.paymentservice.exception.WalletNotFoundException;
-import dev.github.sterio0o.paymentservice.model.dto.WalletRequestDto;
+import dev.github.sterio0o.paymentservice.model.dto.WalletOperationDto;
 import dev.github.sterio0o.paymentservice.model.dto.WalletResponseDto;
 import dev.github.sterio0o.paymentservice.model.entity.Wallet;
 import dev.github.sterio0o.paymentservice.repository.WalletRepository;
@@ -21,7 +21,7 @@ public class WalletService {
 
     public WalletResponseDto getWalletByUserId(UUID userId) {
         Wallet wallet = walletRepository.findByUserId(userId)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet for user=" + userId + " already created"));
+                .orElseThrow(() -> new WalletNotFoundException("Wallet для user=" + userId + " не найден"));
 
         return WalletResponseDto.fromEntity(wallet);
     }
@@ -29,7 +29,7 @@ public class WalletService {
     @Transactional
     public WalletResponseDto createWallet(UUID userId) {
         if (walletRepository.existsByUserId(userId))
-            throw new WalletAlreadyCreatedException("Wallet for user=" + userId + " already created");
+            throw new WalletAlreadyCreatedException("Wallet для user=" + userId + " уже существует");
 
         Wallet wallet = new Wallet();
         wallet.setUserId(userId);
@@ -39,35 +39,24 @@ public class WalletService {
     }
 
     @Transactional
-    public WalletResponseDto topUpBalance(UUID userId, WalletRequestDto requestDto) {
+    public WalletResponseDto operationTransaction(UUID userId, WalletOperationDto operationDto) {
         Wallet wallet = walletRepository.findByUserId(userId)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet by userId=" + userId + " not found"));
+                .orElseThrow(() -> new WalletNotFoundException("Wallet by userId=" + userId + " не найден"));
 
-        BigDecimal prevBalance = wallet.getBalance();
-        BigDecimal newBalance = prevBalance.add(BigDecimal.valueOf(requestDto.sum()));
-        wallet.setBalance(newBalance);
+        BigDecimal amount = operationDto.sum();
+        BigDecimal currentBalance = wallet.getBalance();
+
+        switch (operationDto.type()) {
+            case DEPOSIT -> wallet.setBalance(currentBalance.add(amount));
+            case WITHDRAWAL -> {
+                if (currentBalance.compareTo(amount) < 0)
+                    throw new NotEnoughMoneyException("Не достаточно средств на балансе");
+                wallet.setBalance(currentBalance.subtract(amount));
+            }
+            default -> throw new IllegalArgumentException("Неверный тип банковский операции");
+        }
+
         Wallet savedWallet = walletRepository.save(wallet);
-
-        return WalletResponseDto.fromEntity(savedWallet);
-    }
-
-    @Transactional
-    public WalletResponseDto withdrawMoney(UUID userId, WalletRequestDto requestDto) {
-        Wallet wallet = walletRepository.findByUserId(userId)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet by userId=" + userId + " not found"));
-
-        BigDecimal prevBalance = wallet.getBalance();
-        BigDecimal amount = BigDecimal.valueOf(requestDto.sum());
-
-        if (amount.compareTo(BigDecimal.ZERO) <= 0)
-            throw new IllegalArgumentException("Sum must be positive");
-
-        if (prevBalance.compareTo(amount) < 0)
-            throw new NotEnoughMoneyException("Not enough money on balance");
-
-        wallet.setBalance(prevBalance.subtract(amount));
-        Wallet savedWallet = walletRepository.save(wallet);
-
         return WalletResponseDto.fromEntity(savedWallet);
     }
 }

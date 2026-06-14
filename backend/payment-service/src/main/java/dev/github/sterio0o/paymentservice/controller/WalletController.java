@@ -3,7 +3,7 @@ package dev.github.sterio0o.paymentservice.controller;
 import dev.github.sterio0o.paymentservice.exception.NotEnoughMoneyException;
 import dev.github.sterio0o.paymentservice.exception.WalletAlreadyCreatedException;
 import dev.github.sterio0o.paymentservice.exception.WalletNotFoundException;
-import dev.github.sterio0o.paymentservice.model.dto.WalletRequestDto;
+import dev.github.sterio0o.paymentservice.model.dto.WalletOperationDto;
 import dev.github.sterio0o.paymentservice.model.dto.WalletResponseDto;
 import dev.github.sterio0o.paymentservice.service.WalletService;
 import dev.github.sterio0o.paymentservice.util.WalletErrorResponse;
@@ -45,23 +45,13 @@ public class WalletController {
         return ResponseEntity.created(location).body(wallet);
     }
 
-    @PatchMapping("/balance/top-up")
+    @PatchMapping("/operations")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<WalletResponseDto> topUpBalance(
+    public ResponseEntity<WalletResponseDto> operation(
             @AuthenticationPrincipal String userId,
-            @RequestBody WalletRequestDto requestDto
+            @RequestBody WalletOperationDto operationDto
     ) {
-        WalletResponseDto wallet = walletService.topUpBalance(UUID.fromString(userId), requestDto);
-        return ResponseEntity.ok(wallet);
-    }
-
-    @PatchMapping("/balance/withdraw-money")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<WalletResponseDto> withdrawMoney(
-            @AuthenticationPrincipal String userId,
-            @RequestBody WalletRequestDto requestDto
-    ) {
-        WalletResponseDto wallet = walletService.withdrawMoney(UUID.fromString(userId), requestDto);
+        WalletResponseDto wallet = walletService.operationTransaction(UUID.fromString(userId), operationDto);
         return ResponseEntity.ok(wallet);
     }
 
