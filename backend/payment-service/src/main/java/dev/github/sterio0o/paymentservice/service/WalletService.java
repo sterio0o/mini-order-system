@@ -59,4 +59,17 @@ public class WalletService {
         Wallet savedWallet = walletRepository.save(wallet);
         return WalletResponseDto.fromEntity(savedWallet);
     }
+
+    @Transactional
+    public void paymentTransaction(UUID userId, BigDecimal amount) {
+        Wallet wallet = walletRepository.findByUserId(userId)
+                .orElseThrow(() -> new WalletNotFoundException("Wallet by userId=" + userId + " не найден"));
+
+        BigDecimal currentBalance = wallet.getBalance();
+        if (currentBalance.compareTo(amount) < 0)
+            throw new NotEnoughMoneyException("Не достаточно средств на балансе");
+
+        wallet.setBalance(currentBalance.subtract(amount));
+        walletRepository.save(wallet);
+    }
 }
