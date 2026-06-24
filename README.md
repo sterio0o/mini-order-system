@@ -28,6 +28,19 @@
 | Payment Service      | postgres-payment         | 5434 | paymentdb           |
 | Notification Service | postgres-notification    | 5435 | notificationdb      |
 
+### Схема БД
+**Order Service**
+
+![ER-диаграмма сервиса заказов](./docs/diagrams/er-model-orders.drawio.svg)
+
+**User Service**
+
+![ER-диаграмма сервиса заказов](./docs/diagrams/er-model-users.drawio.svg)
+
+**Payment Service**
+
+![ER-диаграмма сервиса заказов](./docs/diagrams/er-model-payments.drawio.svg)
+
 **Технологии**
   * Java 21
   * Spring Boot 4.3
