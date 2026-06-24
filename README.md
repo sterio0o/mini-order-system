@@ -35,15 +35,3 @@
   * PostgreSQL
   * Apache Kafka
   * Docker / Docker Compose
-
-# Структура проекта
-
-```tree
-microservices-demo/
-├── docker-compose.yml
-├── setup.sh
-├── common/                 # общие классы (JWT, Kafka события)
-├── user-service/           # порт 8080, БД: 5432 (userdb)
-├── order-service/          # порт 8081, БД: 5433 (orderdb)
-├── payment-service/        # порт 8082, БД: 5434 (paymentdb)
-└── notification-service/   # порт 8083, БД: 5435 (notificationdb)
