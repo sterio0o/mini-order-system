@@ -16,4 +16,13 @@ public record OrderItemResponseDto(
                 entity.getPrice()
         );
     }
+
+    @Override
+    public String toString() {
+        return "Item {" +
+                "product='" + productName + '\'' +
+                ", quantity=" + quantity +
+                ", price=" + price +
+                '}';
+    }
 }

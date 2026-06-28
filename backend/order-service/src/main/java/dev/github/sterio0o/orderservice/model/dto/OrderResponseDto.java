@@ -30,4 +30,15 @@ public record OrderResponseDto(
                 order.getCreatedAt()
         );
     }
+
+    @Override
+    public String toString() {
+        return "Order {" +
+                "id=" + id +
+                ", email='" + customerEmail + '\'' +
+                ", items=" + items +
+                ", amount=" + amount +
+                ", status=" + status +
+                '}';
+    }
 }
