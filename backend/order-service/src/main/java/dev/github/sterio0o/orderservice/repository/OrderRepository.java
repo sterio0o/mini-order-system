@@ -1,6 +1,8 @@
 package dev.github.sterio0o.orderservice.repository;
 
 import dev.github.sterio0o.orderservice.model.entities.Order;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -16,4 +18,6 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
             "LEFT JOIN FETCH oi.product " +
             "WHERE o.id = :id")
     Optional<Order> findById(UUID id);
+
+    Page<Order> findAllByUserId(UUID id, Pageable pageable);
 }
