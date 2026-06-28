@@ -1,7 +1,6 @@
 package dev.github.sterio0o.orderservice.service;
 
 import dev.github.sterio0o.common.events.OrderCreatedEvent;
-import dev.github.sterio0o.common.events.PaymentProcessingEvent;
 import dev.github.sterio0o.orderservice.exception.OrderNotFoundException;
 import dev.github.sterio0o.orderservice.exception.ProductNotFoundException;
 import dev.github.sterio0o.orderservice.kafka.KafkaProducer;
@@ -14,19 +13,21 @@ import dev.github.sterio0o.orderservice.model.entities.OrderStatus;
 import dev.github.sterio0o.orderservice.model.entities.Product;
 import dev.github.sterio0o.orderservice.repository.OrderRepository;
 import dev.github.sterio0o.orderservice.repository.ProductRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
@@ -38,6 +39,16 @@ public class OrderService {
                 .orElseThrow(() -> new OrderNotFoundException("Order with ID=" + id + " not found"));
 
         return OrderResponseDto.fromEntity(order);
+    }
+
+    public Page<OrderResponseDto> getAllOrders(Pageable pageable) {
+        Page<Order> orderPage = orderRepository.findAll(pageable);
+        return orderPage.map(OrderResponseDto::fromEntity);
+    }
+
+    public Page<OrderResponseDto> getMyOrders(Pageable pageable, UUID userId) {
+        Page<Order> orderPage = orderRepository.findAllByUserId(userId, pageable);
+        return orderPage.map(OrderResponseDto::fromEntity);
     }
 
     @Transactional
@@ -88,5 +99,13 @@ public class OrderService {
         kafkaProducer.sendEvent(event);
 
         return OrderResponseDto.fromEntity(savedOrder);
+    }
+
+    @Transactional
+    public void deleteOrder(UUID id) {
+        if (!orderRepository.existsById(id))
+            throw new OrderNotFoundException("Order with ID=" + id + " not found");
+
+        orderRepository.deleteById(id);
     }
 }

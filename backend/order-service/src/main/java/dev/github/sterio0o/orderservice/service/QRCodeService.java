@@ -5,8 +5,10 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+import dev.github.sterio0o.orderservice.exception.QRCodeGenerationException;
 import dev.github.sterio0o.orderservice.model.dto.OrderResponseDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -18,6 +20,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class QRCodeService {
 
     private final OrderService orderService;
@@ -38,7 +41,8 @@ public class QRCodeService {
 
             return byteArrayOutputStream.toByteArray();
         } catch (WriterException | IOException e) {
-            throw new RuntimeException(e);
+            log.error("Ошибка генерации QR кода для order ID:{}", orderId, e);
+            throw new QRCodeGenerationException("Не удалось сгенерировать QR код для order: " + orderId, e);
         }
     }
 
