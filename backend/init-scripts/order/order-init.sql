@@ -23,6 +23,8 @@ CREATE TABLE order_items (
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
+CREATE INDEX idx_product_name ON products(product_name);
+
 INSERT INTO products (product_name, price) VALUES
        ('Laptop', 1000),
        ('Mouse', 50),
