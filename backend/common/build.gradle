@@ -17,20 +17,20 @@ repositories {
 }
 
 dependencies {
-    // AOP (Версия определится автоматически благодаря плагину)
+    // AOP
     api 'org.springframework:spring-aop'
     api 'org.aspectj:aspectjweaver:1.9.22.1'
     api 'org.aspectj:aspectjrt:1.9.22.1'
 
-    // JWT (Оставляем как у вас)
+    // JWT
     api 'io.jsonwebtoken:jjwt-api:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
-    // Spring Security (Версии подставятся автоматически, не пишите :4.0.4)
+    // Spring Security
     api 'org.springframework.boot:spring-boot-starter-security'
 
-    // Spring Core & Web (Вместо ручных spring-web лучше использовать стартер)
+    // Spring Core & Web
     api 'org.springframework.boot:spring-boot-starter-web'
 
     // Servlet API
