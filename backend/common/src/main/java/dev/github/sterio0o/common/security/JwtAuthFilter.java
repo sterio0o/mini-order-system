@@ -1,5 +1,6 @@
 package dev.github.sterio0o.common.security;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,8 +34,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             try {
                 // Достать данные из токена
-                String userId = jwtService.extractUserId(token);
-                List<String> roles = jwtService.extractRoles(token);
+                Claims claims = jwtService.validateToken(token);
+                String userId = claims.getId();
+                List<String> roles = claims.get("roles", List.class);
 
                 // Превращение ролей в формат Spring Security
                 List<SimpleGrantedAuthority> authorities = roles.stream()
