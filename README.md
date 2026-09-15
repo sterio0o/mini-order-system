@@ -28,6 +28,8 @@
 | Payment Service      | postgres-payment         | 5434 | paymentdb           |
 | Notification Service | postgres-notification    | 5435 | notificationdb      |
 
+Для контроля изменений и чистой истории изспользуется Flyway.
+
 ### Схема БД
 **Order Service**
 
@@ -48,3 +50,4 @@
   * PostgreSQL
   * Apache Kafka
   * Docker / Docker Compose
+  * Flyway
