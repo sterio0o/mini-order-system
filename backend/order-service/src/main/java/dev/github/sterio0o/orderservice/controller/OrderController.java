@@ -4,6 +4,7 @@ import dev.github.sterio0o.orderservice.model.dto.OrderRequestDto;
 import dev.github.sterio0o.orderservice.model.dto.OrderResponseDto;
 import dev.github.sterio0o.orderservice.model.entities.Order;
 import dev.github.sterio0o.orderservice.service.OrderService;
+import dev.github.sterio0o.orderservice.service.PdfGenerationService;
 import dev.github.sterio0o.orderservice.service.QRCodeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,7 @@ import java.util.UUID;
 public class OrderController {
     private final OrderService orderService;
     private final QRCodeService qrCodeService;
+    private final PdfGenerationService pdfGenerationService;
 
     // Endpoints
 
@@ -51,6 +53,19 @@ public class OrderController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @GetMapping("/pdf/{id}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<byte[]> generatePdf(@PathVariable UUID id) {
+        byte[] pdfReport = pdfGenerationService.generatePdf(id);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "inline");
+        headers.setContentLength(pdfReport.length);
+
+        return new ResponseEntity<>(pdfReport, headers, HttpStatus.OK);
     }
 
     @GetMapping

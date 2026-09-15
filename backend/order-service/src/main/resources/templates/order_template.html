@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        body {
+            /* Имя шрифта должно строго совпадать с тем, что зарегистрировано в Java (Arial) */
+            font-family: 'Arial', sans-serif;
+            padding: 20px;
+            -fs-pdf-font-embed: embed;
+            -fs-pdf-font-encoding: Identity-H;
+        }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .text-right { text-align: right; }
+        .total { font-weight: bold; background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+<h1 th:text="'Заказ № ' + ${order.id}">Заказ № 123</h1>
+<p><b>Email клиента:</b> <span th:text="${order.customerEmail}"></span></p>
+<p><b>Дата:</b> <span th:text="${order.createdAt}"></span></p>
+
+<table>
+    <thead>
+    <tr>
+        <th>Наименование товара</th>
+        <th>Количество</th>
+        <th>Цена шт.</th>
+        <th>Итог</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item : ${order.orderItems}">
+        <td th:text="${item.product != null ? item.product.name : 'Товар'}">Товар</td>
+        <td th:text="${item.quantity}">1</td>
+        <td th:text="${item.price} + ' руб.'">100</td>
+        <td th:text="${item.price.multiply(T(java.math.BigDecimal).valueOf(item.quantity))} + ' руб.'">100</td>
+    </tr>
+    <tr class="total">
+        <td colspan="3" class="text-right">ИТОГО К ОПЛАТЕ:</td>
+        <td th:text="${order.amount} + ' руб.'">0</td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

@@ -2,6 +2,7 @@ package dev.github.sterio0o.orderservice.util;
 
 import dev.github.sterio0o.common.util.ErrorResponse;
 import dev.github.sterio0o.orderservice.exception.OrderNotFoundException;
+import dev.github.sterio0o.orderservice.exception.PdfGenerateException;
 import dev.github.sterio0o.orderservice.exception.ProductNotFoundException;
 import dev.github.sterio0o.orderservice.exception.QRCodeGenerationException;
 import org.springframework.http.HttpStatus;
@@ -43,5 +44,16 @@ public class OrderExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse); // 404 - NOT FOUND
+    }
+
+    // PdfGenerateException
+    @ExceptionHandler(PdfGenerateException.class)
+    public ResponseEntity<ErrorResponse> handlePdfGenerate(PdfGenerateException e) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                e.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse); // 500 - ошибка сервера
     }
 }

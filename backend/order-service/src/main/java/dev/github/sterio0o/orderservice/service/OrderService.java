@@ -41,6 +41,11 @@ public class OrderService {
         return OrderResponseDto.fromEntity(order);
     }
 
+    public Order getOrderEntityById(UUID id) {
+        return orderRepository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException("Order with ID=" + id + " not found"));
+    }
+
     public Page<OrderResponseDto> getAllOrders(Pageable pageable) {
         Page<Order> orderPage = orderRepository.findAll(pageable);
         return orderPage.map(OrderResponseDto::fromEntity);
