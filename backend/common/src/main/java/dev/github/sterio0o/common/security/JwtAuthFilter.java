@@ -35,7 +35,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             try {
                 // Достать данные из токена
                 Claims claims = jwtService.validateToken(token);
-                String userId = claims.getId();
+                String userId = claims.getSubject();
                 List<String> roles = claims.get("roles", List.class);
 
                 // Превращение ролей в формат Spring Security
