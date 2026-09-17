@@ -33,6 +33,7 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final KafkaProducer kafkaProducer;
 
+    // Получение заказа в виде OrderResponseDto
     public OrderResponseDto getOrderById(UUID id) {
         log.info("getOrderById: {}", id);
         Order order = orderRepository.findById(id)
@@ -41,6 +42,7 @@ public class OrderService {
         return OrderResponseDto.fromEntity(order);
     }
 
+    // Получение заказа с products в виде Order
     public Order getOrderEntityById(UUID id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order with ID=" + id + " not found"));
