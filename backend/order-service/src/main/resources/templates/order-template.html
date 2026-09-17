@@ -4,11 +4,8 @@
     <meta charset="UTF-8"/>
     <style>
         body {
-            /* Имя шрифта должно строго совпадать с тем, что зарегистрировано в Java (Arial) */
             font-family: 'Arial', sans-serif;
             padding: 20px;
-            -fs-pdf-font-embed: embed;
-            -fs-pdf-font-encoding: Identity-H;
         }
         h1 { color: #333; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -34,10 +31,10 @@
     </thead>
     <tbody>
     <tr th:each="item : ${order.orderItems}">
-        <td th:text="${item.product != null ? item.product.name : 'Товар'}">Товар</td>
+        <td th:text="${item.product != null ? item.product.productName : 'Товар'}">Товар</td>
         <td th:text="${item.quantity}">1</td>
+        <td th:text="${item.product != null ? item.product.price : ''} + ' руб.'">100</td>
         <td th:text="${item.price} + ' руб.'">100</td>
-        <td th:text="${item.price.multiply(T(java.math.BigDecimal).valueOf(item.quantity))} + ' руб.'">100</td>
     </tr>
     <tr class="total">
         <td colspan="3" class="text-right">ИТОГО К ОПЛАТЕ:</td>
