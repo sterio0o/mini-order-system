@@ -5,3 +5,8 @@ CREATE TABLE users (
     name VARCHAR(128),
     created_at TIMESTAMP NOT NULL
 );
+
+CREATE TABLE user_roles (
+    user_id UUID NOT NULL REFERENCES users(id),
+    role VARCHAR(255)
+);
