@@ -3,6 +3,7 @@ package dev.github.sterio0o.orderservice.controller;
 import dev.github.sterio0o.orderservice.model.dto.OrderRequestDto;
 import dev.github.sterio0o.orderservice.model.dto.OrderResponseDto;
 import dev.github.sterio0o.orderservice.model.entities.Order;
+import dev.github.sterio0o.orderservice.service.AsyncGenerationService;
 import dev.github.sterio0o.orderservice.service.OrderService;
 import dev.github.sterio0o.orderservice.service.PdfGenerationService;
 import dev.github.sterio0o.orderservice.service.QRCodeService;
@@ -21,6 +22,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -29,6 +31,7 @@ public class OrderController {
     private final OrderService orderService;
     private final QRCodeService qrCodeService;
     private final PdfGenerationService pdfGenerationService;
+    private final AsyncGenerationService asyncGenerationService;
 
     // Endpoints
 
@@ -39,6 +42,7 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
+    /*
     @GetMapping("/qrcode/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<byte[]> generateQRCode(@PathVariable UUID id) {
@@ -54,7 +58,9 @@ public class OrderController {
             return ResponseEntity.badRequest().build();
         }
     }
+     */
 
+    /*
     @GetMapping("/pdf/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<byte[]> generatePdf(@PathVariable UUID id) {
@@ -67,6 +73,7 @@ public class OrderController {
 
         return new ResponseEntity<>(pdfReport, headers, HttpStatus.OK);
     }
+     */
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -106,5 +113,37 @@ public class OrderController {
     public ResponseEntity<Void> deleteOrder(@PathVariable UUID id) {
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // Методы для асинхронной работы
+
+    // Асинхронная генерация QR кода
+    @GetMapping("/qrcode/{id}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public CompletableFuture<ResponseEntity<byte[]>> generateQRCode(@PathVariable UUID id) {
+        return asyncGenerationService.generateQRCodeAsync(id)
+                .thenApply(qrCodeBytes -> {
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.IMAGE_PNG);
+                    headers.set(HttpHeaders.CONTENT_DISPOSITION, "inline");
+                    headers.setContentLength(qrCodeBytes.length);
+
+                    return new ResponseEntity<>(qrCodeBytes, headers, HttpStatus.OK);
+                });
+    }
+
+    // Асинхронная генерация PDF отчета
+    @GetMapping("/pdf/{id}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public CompletableFuture<ResponseEntity<byte[]>> generatePdf(@PathVariable UUID id) {
+        return asyncGenerationService.generatePdfAsync(id)
+                .thenApply(pdfReportBytes -> {
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.APPLICATION_PDF);
+                    headers.set(HttpHeaders.CONTENT_DISPOSITION, "inline");
+                    headers.setContentLength(pdfReportBytes.length);
+
+                    return new ResponseEntity<>(pdfReportBytes, headers, HttpStatus.OK);
+                });
     }
 }
