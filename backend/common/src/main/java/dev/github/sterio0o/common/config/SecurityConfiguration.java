@@ -2,6 +2,7 @@ package dev.github.sterio0o.common.config;
 
 import dev.github.sterio0o.common.security.JwtAuthFilter;
 import dev.github.sterio0o.common.security.JwtService;
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,10 +33,14 @@ public class SecurityConfiguration {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Отключает создание HTTP сессии
                 // Пути которые не требуют авторизации (не нужен JWT)
                 .authorizeHttpRequests(auth -> auth
+                        // Разрешил повторный проход через цепочку фильтров для асинхронный запросов
+                        .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
+
                         .requestMatchers(
                                 "/api/auth/**",     // Логин и регистрация
                                 "/swagger-ui/**"    // Документация Swagger API
                         ).permitAll()
+
                         .anyRequest().authenticated() // Все остальные запросы требуют авторизации
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

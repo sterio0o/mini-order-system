@@ -62,4 +62,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
          */
         filterChain.doFilter(request, response);
     }
+
+    // Отключение фильтра при повторном вызове async
+    @Override
+    protected boolean shouldNotFilterAsyncDispatch() {
+        return true;
+    }
 }
