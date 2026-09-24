@@ -1,7 +1,7 @@
 package dev.github.sterio0o.orderservice.service;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
-import dev.github.sterio0o.orderservice.exception.PdfGenerateException;
+import dev.github.sterio0o.orderservice.exception.light.LightPdfGenerateException;
 import dev.github.sterio0o.orderservice.model.entities.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,7 +44,7 @@ public class PdfGenerationService {
 
             return out.toByteArray();
         } catch (IOException e) {
-            throw new PdfGenerateException("Ошибка генерации pdf", e);
+            throw new LightPdfGenerateException("Ошибка генерации pdf");
         }
     }
 

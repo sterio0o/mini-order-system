@@ -1,10 +1,11 @@
 package dev.github.sterio0o.orderservice.util;
 
 import dev.github.sterio0o.common.util.ErrorResponse;
-import dev.github.sterio0o.orderservice.exception.OrderNotFoundException;
-import dev.github.sterio0o.orderservice.exception.PdfGenerateException;
-import dev.github.sterio0o.orderservice.exception.ProductNotFoundException;
-import dev.github.sterio0o.orderservice.exception.QRCodeGenerationException;
+import dev.github.sterio0o.orderservice.exception.*;
+import dev.github.sterio0o.orderservice.exception.light.LightOrderNotFoundException;
+import dev.github.sterio0o.orderservice.exception.light.LightPdfGenerateException;
+import dev.github.sterio0o.orderservice.exception.light.LightProductNotFoundException;
+import dev.github.sterio0o.orderservice.exception.light.LightQRCodeGenerationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,8 +15,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class OrderExceptionHandler {
 
     // QRCodeGenerationException
-    @ExceptionHandler(QRCodeGenerationException.class)
-    public ResponseEntity<ErrorResponse> handleQRCodeGeneration(QRCodeGenerationException e) {
+    @ExceptionHandler(LightQRCodeGenerationException.class)
+    public ResponseEntity<ErrorResponse> handleQRCodeGeneration(LightQRCodeGenerationException e) {
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 e.getMessage()
@@ -25,8 +26,8 @@ public class OrderExceptionHandler {
     }
 
     // OrderNotFoundException
-    @ExceptionHandler(OrderNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleOrderNotFound(OrderNotFoundException e) {
+    @ExceptionHandler(LightOrderNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleOrderNotFound(LightOrderNotFoundException e) {
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 e.getMessage()
@@ -36,8 +37,8 @@ public class OrderExceptionHandler {
     }
 
     // ProductNotFoundException
-    @ExceptionHandler(ProductNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleProductNotFound(ProductNotFoundException e) {
+    @ExceptionHandler(LightProductNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleProductNotFound(LightProductNotFoundException e) {
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 e.getMessage()
@@ -47,8 +48,8 @@ public class OrderExceptionHandler {
     }
 
     // PdfGenerateException
-    @ExceptionHandler(PdfGenerateException.class)
-    public ResponseEntity<ErrorResponse> handlePdfGenerate(PdfGenerateException e) {
+    @ExceptionHandler(LightPdfGenerateException.class)
+    public ResponseEntity<ErrorResponse> handlePdfGenerate(LightPdfGenerateException e) {
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 e.getMessage()
