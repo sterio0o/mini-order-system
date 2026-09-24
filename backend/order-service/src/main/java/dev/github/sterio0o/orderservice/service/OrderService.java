@@ -1,8 +1,8 @@
 package dev.github.sterio0o.orderservice.service;
 
 import dev.github.sterio0o.common.events.OrderCreatedEvent;
-import dev.github.sterio0o.orderservice.exception.OrderNotFoundException;
-import dev.github.sterio0o.orderservice.exception.ProductNotFoundException;
+import dev.github.sterio0o.orderservice.exception.light.LightOrderNotFoundException;
+import dev.github.sterio0o.orderservice.exception.light.LightProductNotFoundException;
 import dev.github.sterio0o.orderservice.kafka.KafkaProducer;
 import dev.github.sterio0o.orderservice.model.dto.OrderItemRequestDto;
 import dev.github.sterio0o.orderservice.model.dto.OrderRequestDto;
@@ -37,7 +37,7 @@ public class OrderService {
     public OrderResponseDto getOrderById(UUID id) {
         log.info("getOrderById: {}", id);
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new OrderNotFoundException("Order with ID=" + id + " not found"));
+                .orElseThrow(() -> new LightOrderNotFoundException("Order with ID=" + id + " not found"));
 
         return OrderResponseDto.fromEntity(order);
     }
@@ -45,7 +45,7 @@ public class OrderService {
     // Получение заказа с products в виде Order
     public Order getOrderEntityById(UUID id) {
         return orderRepository.findById(id)
-                .orElseThrow(() -> new OrderNotFoundException("Order with ID=" + id + " not found"));
+                .orElseThrow(() -> new LightOrderNotFoundException("Order with ID=" + id + " not found"));
     }
 
     public Page<OrderResponseDto> getAllOrders(Pageable pageable) {
@@ -74,7 +74,7 @@ public class OrderService {
         BigDecimal totalAmount = BigDecimal.ZERO;
         for (OrderItemRequestDto item : requestDto.items()) {
             Product product = productRepository.findByProductName(item.productName())
-                    .orElseThrow(() -> new ProductNotFoundException(
+                    .orElseThrow(() -> new LightProductNotFoundException(
                                     "Product with name=" + item.productName() + " not found")
                     );
 
@@ -111,7 +111,7 @@ public class OrderService {
     @Transactional
     public void deleteOrder(UUID id) {
         if (!orderRepository.existsById(id))
-            throw new OrderNotFoundException("Order with ID=" + id + " not found");
+            throw new LightOrderNotFoundException("Order with ID=" + id + " not found");
 
         orderRepository.deleteById(id);
     }

@@ -5,6 +5,10 @@ import dev.github.sterio0o.paymentservice.exception.NotEnoughMoneyException;
 import dev.github.sterio0o.paymentservice.exception.PaymentNotFoundException;
 import dev.github.sterio0o.paymentservice.exception.WalletAlreadyCreatedException;
 import dev.github.sterio0o.paymentservice.exception.WalletNotFoundException;
+import dev.github.sterio0o.paymentservice.exception.light.LightNotEnoughMoneyException;
+import dev.github.sterio0o.paymentservice.exception.light.LightPaymentNotFoundException;
+import dev.github.sterio0o.paymentservice.exception.light.LightWalletAlreadyCreatedException;
+import dev.github.sterio0o.paymentservice.exception.light.LightWalletNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,8 +18,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class WalletExceptionHandler {
 
     // WalletNotFoundException
-    @ExceptionHandler(WalletNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleWalletNotFound(WalletNotFoundException e) {
+    @ExceptionHandler(LightWalletNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleWalletNotFound(LightWalletNotFoundException e) {
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 e.getMessage()
@@ -25,8 +29,8 @@ public class WalletExceptionHandler {
     }
 
     // PaymentNotFoundException
-    @ExceptionHandler(PaymentNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handlePaymentNotFound(PaymentNotFoundException e) {
+    @ExceptionHandler(LightPaymentNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePaymentNotFound(LightPaymentNotFoundException e) {
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 e.getMessage()
@@ -36,8 +40,8 @@ public class WalletExceptionHandler {
     }
 
     // WalletAlreadyCreatedException
-    @ExceptionHandler(WalletAlreadyCreatedException.class)
-    public ResponseEntity<ErrorResponse> handleAlreadyCreated(WalletAlreadyCreatedException e) {
+    @ExceptionHandler(LightWalletAlreadyCreatedException.class)
+    public ResponseEntity<ErrorResponse> handleAlreadyCreated(LightWalletAlreadyCreatedException e) {
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.CONFLICT.value(),
                 e.getMessage()
@@ -47,8 +51,8 @@ public class WalletExceptionHandler {
     }
 
     // NotEnoughMoneyException
-    @ExceptionHandler(NotEnoughMoneyException.class)
-    public ResponseEntity<ErrorResponse> handleNotEnoughMoney(NotEnoughMoneyException e) {
+    @ExceptionHandler(LightNotEnoughMoneyException.class)
+    public ResponseEntity<ErrorResponse> handleNotEnoughMoney(LightNotEnoughMoneyException e) {
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.PAYMENT_REQUIRED.value(),
                 e.getMessage()

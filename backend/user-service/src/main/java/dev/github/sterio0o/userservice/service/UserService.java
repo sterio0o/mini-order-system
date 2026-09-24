@@ -1,5 +1,6 @@
 package dev.github.sterio0o.userservice.service;
 
+import dev.github.sterio0o.userservice.exception.light.LightEmailAlreadyExistsException;
 import dev.github.sterio0o.userservice.model.dto.request.RegisterRequestDto;
 import dev.github.sterio0o.userservice.model.entity.User;
 import dev.github.sterio0o.userservice.repository.UserRepository;
@@ -19,7 +20,7 @@ public class UserService {
     @Transactional
     public User register(RegisterRequestDto requestDto) {
         if (userRepository.existsByEmail(requestDto.email())) {
-            throw new RuntimeException("Email already exists");
+            throw new LightEmailAlreadyExistsException("Email already exists");
         }
 
         User user = User.builder()
