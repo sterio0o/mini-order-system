@@ -30,6 +30,15 @@ services:
     networks:
       - app-network
 
+  redis:
+    image: redis:latest
+    container_name: redis-order
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
   # ==================== POSTGRES DATABASES ====================
   postgres-user:
     image: postgres:15-alpine
@@ -232,6 +241,7 @@ volumes:
   postgres-notification-data:
   #postgres-delivery-data:
   kafka-data:
+  redis_data:
 
 networks:
   app-network:

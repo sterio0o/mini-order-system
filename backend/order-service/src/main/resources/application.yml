@@ -9,6 +9,13 @@ spring:
     password: root
     driver-class-name: org.postgresql.Driver
 
+  data:
+    redis:
+      host: localhost
+      username: redis
+      password: root
+      port: 6379
+
   kafka:
     bootstrap-servers: localhost:9092
 
