@@ -2,17 +2,15 @@ package dev.github.sterio0o.orderservice.service;
 
 import dev.github.sterio0o.common.events.OrderCreatedEvent;
 import dev.github.sterio0o.orderservice.exception.light.LightOrderNotFoundException;
-import dev.github.sterio0o.orderservice.exception.light.LightProductNotFoundException;
 import dev.github.sterio0o.orderservice.kafka.KafkaProducer;
 import dev.github.sterio0o.orderservice.model.dto.OrderItemRequestDto;
 import dev.github.sterio0o.orderservice.model.dto.OrderRequestDto;
 import dev.github.sterio0o.orderservice.model.dto.OrderResponseDto;
+import dev.github.sterio0o.orderservice.model.dto.product.ProductResponseDto;
 import dev.github.sterio0o.orderservice.model.entities.Order;
 import dev.github.sterio0o.orderservice.model.entities.OrderItem;
 import dev.github.sterio0o.orderservice.model.entities.OrderStatus;
-import dev.github.sterio0o.orderservice.model.entities.Product;
 import dev.github.sterio0o.orderservice.repository.OrderRepository;
-import dev.github.sterio0o.orderservice.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,7 +28,6 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class OrderService {
     private final OrderRepository orderRepository;
-    private final ProductRepository productRepository;
     private final ProductService productService;
     private final KafkaProducer kafkaProducer;
 
@@ -74,17 +71,13 @@ public class OrderService {
         // Обработка каждой позиции заказа
         BigDecimal totalAmount = BigDecimal.ZERO;
         for (OrderItemRequestDto item : requestDto.items()) {
-            //Product product = productService.findProductInHotCache(item.productName());
-            Product product = productRepository.findByProductName(item.productName())
-                    .orElseThrow(() -> new LightProductNotFoundException(
-                            "Product with name=" + item.productName() + " not found")
-                    );
+            ProductResponseDto product = productService.findProductInHotCache(item.productId());
 
-            BigDecimal priceToOrderItem = BigDecimal.valueOf(product.getPrice())
+            BigDecimal priceToOrderItem = BigDecimal.valueOf(product.price())
                     .multiply(BigDecimal.valueOf(item.quantity()));
 
             OrderItem orderItem = OrderItem.builder()
-                    .product(product)
+                    .productId(product.id())
                     .price(priceToOrderItem)
                     .quantity(item.quantity())
                     .build();

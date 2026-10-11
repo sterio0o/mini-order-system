@@ -29,33 +29,33 @@ public class ProductService {
 
     private final static Integer NEED_COUNT_TO_CACHE = 3;
 
-    public ProductResponseDto findProductInHotCache(String name) {
-        String cacheKey = CACHE_PREFIX + name;
-        String counterKey = COUNTER_PREFIX + name;
+    public ProductResponseDto findProductInHotCache(UUID id) {
+        String cacheKey = CACHE_PREFIX + id;
+        String counterKey = COUNTER_PREFIX + id;
 
         ProductResponseDto product = (ProductResponseDto) redisTemplate.opsForValue().get(cacheKey);
         if (product != null) {
-            log.info("Product {} найден в кеше", name);
+            log.info("Product {} найден в кеше", id);
             return product;
         }
 
-        Product productDb = productRepository.findByProductName(name)
+        Product productDb = productRepository.findById(id)
                 .orElseThrow(() -> new LightProductNotFoundException(
-                        "Product with name=" + name + " not found")
+                        "Product with ID=" + id + " not found")
                 );
-        log.info("Product {} взят из БД", name);
+        log.info("Product {} взят из БД", id);
 
         product = ProductResponseDto.fromEntity(productDb);
 
         long currentRequest = redisTemplate.opsForValue().increment(counterKey);
-        log.info("Счетчик для Product {} = {}", name, currentRequest);
+        log.info("Счетчик для Product {} = {}", id, currentRequest);
 
         // Если за 5 минут не будет нужное кол-во запросов, то значит товар не популярный
         if (currentRequest == 1)
             redisTemplate.expire(counterKey, Duration.ofMinutes(5));
 
         if (currentRequest >= NEED_COUNT_TO_CACHE) {
-            log.info("Product {} преодолел необходимый порог = {} и помещен в горячий кеш", name, NEED_COUNT_TO_CACHE);
+            log.info("Product {} преодолел необходимый порог = {} и помещен в горячий кеш", id, NEED_COUNT_TO_CACHE);
             // Сохраняем в горячий с кеш с TTL 15 минут
             redisTemplate.opsForValue().setIfAbsent(cacheKey, product, Duration.ofMinutes(15));
 
@@ -78,35 +78,31 @@ public class ProductService {
                         "Product with ID=" + updateDto.id() + " not found")
                 );
 
-        // Запоминаем старое имя на случай, если оно будет изменено
-        String prevName = product.getProductName();
-
         product.setProductName(updateDto.productName());
         product.setPrice(updateDto.price());
 
         Product saved = productRepository.save(product);
 
         // Очистка кеша для консистентности данных
-        redisTemplate.delete(CACHE_PREFIX + prevName);
-        redisTemplate.delete(COUNTER_PREFIX + prevName);
+        redisTemplate.delete(CACHE_PREFIX + updateDto.id());
+        redisTemplate.delete(COUNTER_PREFIX + updateDto.id());
 
-        log.info("Данные Product {} успешно изменены и кеш очищен", prevName);
+        log.info("Данные Product {} успешно изменены и кеш очищен", updateDto.id());
 
         return ProductResponseDto.fromEntity(saved);
     }
 
     @Transactional
     public void deleteProduct(UUID id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new LightProductNotFoundException(
-                        "Product with ID=" + id + " not found")
-                );
+        if (!productRepository.existsById(id)) {
+            throw new LightProductNotFoundException("Product with ID=" + id + " not found");
+        }
 
         // Очищаем кеш перед удалением
-        redisTemplate.delete(CACHE_PREFIX + product.getProductName());
-        redisTemplate.delete(COUNTER_PREFIX + product.getProductName());
+        redisTemplate.delete(CACHE_PREFIX + id);
+        redisTemplate.delete(COUNTER_PREFIX + id);
 
-        log.info("Product {} удален из кеша и из БД", product.getProductName());
+        log.info("Product {} удален из кеша и из БД", id);
 
         productRepository.deleteById(id);
     }

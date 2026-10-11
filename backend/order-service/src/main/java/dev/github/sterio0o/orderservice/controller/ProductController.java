@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/products")
@@ -20,10 +21,10 @@ import java.net.URI;
 public class ProductController {
     private final ProductService productService;
 
-    @GetMapping("/{name}")
+    @GetMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<ProductResponseDto> getProductByName(@PathVariable String name) {
-        ProductResponseDto product = productService.findProductInHotCache(name);
+    public ResponseEntity<ProductResponseDto> getProductByName(@PathVariable UUID id) {
+        ProductResponseDto product = productService.findProductInHotCache(id);
         return ResponseEntity.ok(product);
     }
 
@@ -41,8 +42,8 @@ public class ProductController {
         ProductResponseDto response = productService.createProduct(requestDto);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
-                .path("/{name}")
-                .buildAndExpand(response.productName())
+                .path("/{id}")
+                .buildAndExpand(response.id())
                 .toUri();
 
         return ResponseEntity.created(location).body(response);

@@ -22,9 +22,11 @@ public class OrderItem {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @Column(name = "product_id", nullable = false)
+    private UUID productId;
+
+    @Column(name = "product_name")
+    private String productName;
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;

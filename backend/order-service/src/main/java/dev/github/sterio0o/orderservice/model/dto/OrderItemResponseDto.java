@@ -11,7 +11,7 @@ public record OrderItemResponseDto(
 ) {
     public static OrderItemResponseDto fromEntity(OrderItem entity) {
         return new OrderItemResponseDto(
-                entity.getProduct().getProductName(),
+                entity.getProductName(),
                 entity.getQuantity(),
                 entity.getPrice()
         );
