@@ -7,6 +7,8 @@ import dev.github.sterio0o.orderservice.model.entities.Product;
 import dev.github.sterio0o.orderservice.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,21 +29,23 @@ public class ProductService {
 
     private final static Integer NEED_COUNT_TO_CACHE = 3;
 
-    public Product findProductInHotCache(String name) {
+    public ProductResponseDto findProductInHotCache(String name) {
         String cacheKey = CACHE_PREFIX + name;
         String counterKey = COUNTER_PREFIX + name;
 
-        Product product = (Product) redisTemplate.opsForValue().get(cacheKey);
+        ProductResponseDto product = (ProductResponseDto) redisTemplate.opsForValue().get(cacheKey);
         if (product != null) {
             log.info("Product {} найден в кеше", name);
             return product;
         }
 
-        product = productRepository.findByProductName(name)
+        Product productDb = productRepository.findByProductName(name)
                 .orElseThrow(() -> new LightProductNotFoundException(
                         "Product with name=" + name + " not found")
                 );
         log.info("Product {} взят из БД", name);
+
+        product = ProductResponseDto.fromEntity(productDb);
 
         long currentRequest = redisTemplate.opsForValue().increment(counterKey);
         log.info("Счетчик для Product {} = {}", name, currentRequest);
@@ -62,6 +66,11 @@ public class ProductService {
         return product;
     }
 
+    public Page<ProductResponseDto> findAllProducts(Pageable pageable) {
+        Page<Product> productPage = productRepository.findAll(pageable);
+        return productPage.map(ProductResponseDto::fromEntity);
+    }
+
     @Transactional
     public ProductResponseDto updateProductHotCache(ProductRequestDto updateDto) {
         Product product = productRepository.findById(updateDto.id())
@@ -69,18 +78,21 @@ public class ProductService {
                         "Product with ID=" + updateDto.id() + " not found")
                 );
 
+        // Запоминаем старое имя на случай, если оно будет изменено
+        String prevName = product.getProductName();
+
         product.setProductName(updateDto.productName());
         product.setPrice(updateDto.price());
 
         Product saved = productRepository.save(product);
 
         // Очистка кеша для консистентности данных
-        redisTemplate.delete(CACHE_PREFIX + saved.getProductName());
-        redisTemplate.delete(COUNTER_PREFIX + saved.getProductName());
+        redisTemplate.delete(CACHE_PREFIX + prevName);
+        redisTemplate.delete(COUNTER_PREFIX + prevName);
 
-        log.info("Данные Product {} изменены и кеш очищен", saved.getProductName());
+        log.info("Данные Product {} успешно изменены и кеш очищен", prevName);
 
-        return ProductResponseDto.fromEntity(product);
+        return ProductResponseDto.fromEntity(saved);
     }
 
     @Transactional
@@ -97,5 +109,15 @@ public class ProductService {
         log.info("Product {} удален из кеша и из БД", product.getProductName());
 
         productRepository.deleteById(id);
+    }
+
+    @Transactional
+    public ProductResponseDto createProduct(ProductRequestDto requestDto) {
+        Product product = new Product();
+        product.setProductName(requestDto.productName());
+        product.setPrice(requestDto.price());
+
+        Product saved = productRepository.save(product);
+        return ProductResponseDto.fromEntity(saved);
     }
 }

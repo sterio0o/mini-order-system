@@ -17,12 +17,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -32,6 +30,7 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class OrderService {
     private final OrderRepository orderRepository;
+    private final ProductRepository productRepository;
     private final ProductService productService;
     private final KafkaProducer kafkaProducer;
 
@@ -75,7 +74,11 @@ public class OrderService {
         // Обработка каждой позиции заказа
         BigDecimal totalAmount = BigDecimal.ZERO;
         for (OrderItemRequestDto item : requestDto.items()) {
-            Product product = productService.findProductInHotCache(item.productName());
+            //Product product = productService.findProductInHotCache(item.productName());
+            Product product = productRepository.findByProductName(item.productName())
+                    .orElseThrow(() -> new LightProductNotFoundException(
+                            "Product with name=" + item.productName() + " not found")
+                    );
 
             BigDecimal priceToOrderItem = BigDecimal.valueOf(product.getPrice())
                     .multiply(BigDecimal.valueOf(item.quantity()));
