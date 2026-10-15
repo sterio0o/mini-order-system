@@ -3,6 +3,7 @@ package dev.github.sterio0o.paymentservice.config;
 import dev.github.sterio0o.common.events.OrderCreatedEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +19,11 @@ import java.util.Map;
 
 @Configuration
 public class KafkaConfig {
+
+    @Bean
+    public NewTopic paymentProcessingEventTopic() {
+        return new NewTopic("payment-processing-event", 3, (short) 1);
+    }
 
     @Bean
     public ProducerFactory<String, Object> producerFactory() {
