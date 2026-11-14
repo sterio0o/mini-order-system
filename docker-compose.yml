@@ -117,6 +117,11 @@ services:
       #    create_host_path: false
     #    depends_on:
     #      - spring-app
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+      - '--web.enable-remote-write-receiver'
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

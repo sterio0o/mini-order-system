@@ -13,6 +13,7 @@ import dev.github.sterio0o.orderservice.model.entities.OrderStatus;
 import dev.github.sterio0o.orderservice.model.entities.Product;
 import dev.github.sterio0o.orderservice.repository.OrderRepository;
 import dev.github.sterio0o.orderservice.repository.ProductRepository;
+import dev.github.sterio0o.orderservice.util.OrderMetrics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final KafkaProducer kafkaProducer;
+    private final OrderMetrics orderMetrics;
 
     // Получение заказа в виде OrderResponseDto
     public OrderResponseDto getOrderById(UUID id) {
@@ -60,6 +62,7 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDto createOrder(OrderRequestDto requestDto, UUID userId) {
+        orderMetrics.recordCreateAttempt(); // Попытка создать заказ
         log.info("createOrder for email: {}", requestDto.customerEmail());
 
         Order newOrder = Order.builder()
@@ -104,6 +107,7 @@ public class OrderService {
 
         log.info("Kafka: order-created-event {}", event);
         kafkaProducer.sendEvent(event);
+        orderMetrics.recordCreateSuccess(); // Типо заказ успешно создан (временный тест)
 
         return OrderResponseDto.fromEntity(savedOrder);
     }
