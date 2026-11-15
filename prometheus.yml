@@ -15,5 +15,7 @@ scrape_configs:
     static_configs:
       - targets: ['host.docker.internal:8081']
 
-  # Такая же конфигурация для каждого сервиса
-  # Имя микросервиса и тд - job_name:
+  - job_name: "payment-service"
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'host.docker.internal:8082']
