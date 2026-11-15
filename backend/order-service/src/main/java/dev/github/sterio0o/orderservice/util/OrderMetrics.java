@@ -1,6 +1,9 @@
 package dev.github.sterio0o.orderservice.util;
 
+import dev.github.sterio0o.orderservice.model.entities.OrderStatus;
+import dev.github.sterio0o.orderservice.repository.OrderRepository;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.stereotype.Component;
 
@@ -31,5 +34,12 @@ public class OrderMetrics {
     // Тег reason - тег исключения
     public void recordError(Throwable e) {
         registry.counter("order.error", "reason", e.getClass().getSimpleName()).increment();
+    }
+
+    public void pendingOrderGauge(OrderRepository repository) {
+        Gauge.builder("orders.pending.payment.count", repository,
+                repo -> repo.countByStatus(OrderStatus.PENDING_PAYMENT))
+                .description("Количество заказов, ожидающих оплату")
+                .register(registry);
     }
 }

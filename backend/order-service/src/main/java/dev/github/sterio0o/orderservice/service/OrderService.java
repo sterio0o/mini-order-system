@@ -14,6 +14,7 @@ import dev.github.sterio0o.orderservice.model.entities.Product;
 import dev.github.sterio0o.orderservice.repository.OrderRepository;
 import dev.github.sterio0o.orderservice.repository.ProductRepository;
 import dev.github.sterio0o.orderservice.util.OrderMetrics;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,6 +35,12 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final KafkaProducer kafkaProducer;
     private final OrderMetrics orderMetrics;
+
+    // init-метод для запуска сбора метрики
+    @PostConstruct
+    public void init() {
+        orderMetrics.pendingOrderGauge(orderRepository);
+    }
 
     // Получение заказа в виде OrderResponseDto
     public OrderResponseDto getOrderById(UUID id) {

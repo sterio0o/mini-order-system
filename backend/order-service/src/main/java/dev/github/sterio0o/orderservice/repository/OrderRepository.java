@@ -1,6 +1,7 @@
 package dev.github.sterio0o.orderservice.repository;
 
 import dev.github.sterio0o.orderservice.model.entities.Order;
+import dev.github.sterio0o.orderservice.model.entities.OrderStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,4 +21,6 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     Optional<Order> findById(UUID id);
 
     Page<Order> findAllByUserId(UUID id, Pageable pageable);
+
+    long countByStatus(OrderStatus status);
 }
