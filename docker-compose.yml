@@ -28,7 +28,7 @@ services:
     networks:
       - app-network
 
-  # ==================== KAFKA ====================
+  # ==================== REDIS ====================
 
   redis:
     image: redis:latest
@@ -280,7 +280,6 @@ volumes:
   postgres-notification-data:
   #postgres-delivery-data:
   kafka-data:
-  redis_data:
 
 networks:
   app-network:

@@ -24,7 +24,4 @@ public class Product {
 
     @Column(name = "price", nullable = false)
     private Integer price;
-
-    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
-    private List<OrderItem> orderItems = new ArrayList<>();
 }

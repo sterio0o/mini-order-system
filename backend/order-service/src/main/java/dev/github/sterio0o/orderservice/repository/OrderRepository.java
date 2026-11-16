@@ -13,10 +13,17 @@ import java.util.UUID;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, UUID> {
+//    @Query("SELECT o " +
+//            "FROM Order o " +
+//            "LEFT JOIN FETCH o.orderItems oi " +
+//            "LEFT JOIN FETCH oi.product " +
+//            "WHERE o.id = :id")
+//    Optional<Order> findById(UUID id);
+
     @Query("SELECT o " +
             "FROM Order o " +
             "LEFT JOIN FETCH o.orderItems oi " +
-            "LEFT JOIN FETCH oi.product " +
+            "LEFT JOIN FETCH Product p ON oi.productId = p.id " +
             "WHERE o.id = :id")
     Optional<Order> findById(UUID id);
 

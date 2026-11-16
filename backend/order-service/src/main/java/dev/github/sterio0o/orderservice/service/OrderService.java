@@ -7,6 +7,7 @@ import dev.github.sterio0o.orderservice.kafka.KafkaProducer;
 import dev.github.sterio0o.orderservice.model.dto.OrderItemRequestDto;
 import dev.github.sterio0o.orderservice.model.dto.OrderRequestDto;
 import dev.github.sterio0o.orderservice.model.dto.OrderResponseDto;
+import dev.github.sterio0o.orderservice.model.dto.product.ProductResponseDto;
 import dev.github.sterio0o.orderservice.model.entities.Order;
 import dev.github.sterio0o.orderservice.model.entities.OrderItem;
 import dev.github.sterio0o.orderservice.model.entities.OrderStatus;
@@ -32,7 +33,7 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class OrderService {
     private final OrderRepository orderRepository;
-    private final ProductRepository productRepository;
+    private final ProductService productService;
     private final KafkaProducer kafkaProducer;
     private final OrderMetrics orderMetrics;
 
@@ -69,7 +70,6 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDto createOrder(OrderRequestDto requestDto, UUID userId) {
-        orderMetrics.recordCreateAttempt(); // Попытка создать заказ
         log.info("createOrder for email: {}", requestDto.customerEmail());
 
         Order newOrder = Order.builder()
@@ -83,16 +83,13 @@ public class OrderService {
         // Обработка каждой позиции заказа
         BigDecimal totalAmount = BigDecimal.ZERO;
         for (OrderItemRequestDto item : requestDto.items()) {
-            Product product = productRepository.findByProductName(item.productName())
-                    .orElseThrow(() -> new LightProductNotFoundException(
-                                    "Product with name=" + item.productName() + " not found")
-                    );
+            ProductResponseDto product = productService.findProductInHotCache(item.productId());
 
-            BigDecimal priceToOrderItem = BigDecimal.valueOf(product.getPrice())
+            BigDecimal priceToOrderItem = BigDecimal.valueOf(product.price())
                     .multiply(BigDecimal.valueOf(item.quantity()));
 
             OrderItem orderItem = OrderItem.builder()
-                    .product(product)
+                    .productId(product.id())
                     .price(priceToOrderItem)
                     .quantity(item.quantity())
                     .build();
@@ -114,7 +111,6 @@ public class OrderService {
 
         log.info("Kafka: order-created-event {}", event);
         kafkaProducer.sendEvent(event);
-        orderMetrics.recordCreateSuccess(); // Типо заказ успешно создан (временный тест)
 
         return OrderResponseDto.fromEntity(savedOrder);
     }
