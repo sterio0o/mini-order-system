@@ -16,7 +16,7 @@ public class KafkaConsumer {
     private final PaymentService paymentService;
 
     // Слушает событие создания заказа и вызывает метод ответственный за оплату
-    @KafkaListener(topics = "order-created-event", groupId = "payment-service")
+    @KafkaListener(topics = "order-created-event", groupId = "payment-service", concurrency = "3")
     public void orderCreatedListener(OrderCreatedEvent event) {
         log.info("Kafka сonsumer accepted the event: {}", event);
         paymentService.paymentProcessing(event);

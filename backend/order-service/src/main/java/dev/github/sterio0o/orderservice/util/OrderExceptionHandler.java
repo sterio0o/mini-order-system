@@ -6,13 +6,17 @@ import dev.github.sterio0o.orderservice.exception.light.LightOrderNotFoundExcept
 import dev.github.sterio0o.orderservice.exception.light.LightPdfGenerateException;
 import dev.github.sterio0o.orderservice.exception.light.LightProductNotFoundException;
 import dev.github.sterio0o.orderservice.exception.light.LightQRCodeGenerationException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class OrderExceptionHandler {
+
+    private final OrderMetrics orderMetrics;
 
     // QRCodeGenerationException
     @ExceptionHandler(LightQRCodeGenerationException.class)
@@ -33,6 +37,8 @@ public class OrderExceptionHandler {
                 e.getMessage()
         );
 
+        orderMetrics.recordError(e);
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse); // 404 - NOT FOUND
     }
 
@@ -43,6 +49,8 @@ public class OrderExceptionHandler {
                 HttpStatus.NOT_FOUND.value(),
                 e.getMessage()
         );
+
+        orderMetrics.recordError(e);
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse); // 404 - NOT FOUND
     }

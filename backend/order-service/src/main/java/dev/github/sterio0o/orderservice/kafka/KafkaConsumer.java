@@ -20,7 +20,7 @@ public class KafkaConsumer {
 
     private final OrderRepository orderRepository;
 
-    @KafkaListener(topics = "payment-processing-event", groupId = "order-service")
+    @KafkaListener(topics = "payment-processing-event", groupId = "order-service", concurrency = "3")
     @Transactional
     public void paymentProcessingEvent(PaymentProcessingEvent event) {
         log.info("ORDER-SERVICE: Kafka: обработка платежа от заказа: {}", event);

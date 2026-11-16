@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # ==================== KAFKA ====================
   kafka:
@@ -30,14 +28,22 @@ services:
     networks:
       - app-network
 
+  # ==================== REDIS ====================
+
   redis:
     image: redis:latest
-    container_name: redis-order
-    restart: always
+    container_name: order-redis
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   # ==================== POSTGRES DATABASES ====================
   postgres-user:
@@ -96,6 +102,39 @@ services:
       - "5435:5432"
     volumes:
       - postgres-notification-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  # ==================== METRICS ====================
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      # - bind:
+      #    create_host_path: false
+    #    depends_on:
+    #      - spring-app
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+      - '--web.enable-remote-write-receiver'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
     networks:
       - app-network
 
@@ -241,7 +280,6 @@ volumes:
   postgres-notification-data:
   #postgres-delivery-data:
   kafka-data:
-  redis_data:
 
 networks:
   app-network:

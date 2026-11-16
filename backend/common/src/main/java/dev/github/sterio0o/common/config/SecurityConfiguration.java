@@ -38,7 +38,8 @@ public class SecurityConfiguration {
 
                         .requestMatchers(
                                 "/api/auth/**",     // Логин и регистрация
-                                "/swagger-ui/**"    // Документация Swagger API
+                                "/swagger-ui/**",   // Документация Swagger API
+                                "/actuator/**"      // Spring Actuator
                         ).permitAll()
 
                         .anyRequest().authenticated() // Все остальные запросы требуют авторизации

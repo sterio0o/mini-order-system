@@ -6,6 +6,7 @@ import dev.github.sterio0o.paymentservice.kafka.KafkaProducer;
 import dev.github.sterio0o.paymentservice.model.entity.Payment;
 import dev.github.sterio0o.paymentservice.model.entity.PaymentStatus;
 import dev.github.sterio0o.paymentservice.repository.PaymentRepository;
+import dev.github.sterio0o.paymentservice.util.PaymentMetrics;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,11 +25,16 @@ public class PaymentService {
     private final WalletService walletService;
     private final KafkaProducer kafkaProducer;
 
+    private final PaymentMetrics paymentMetrics;
+
     /*
         Главный метод ответственный за весь платеж
         Из order-service приходит событие на оплату, этот метод вызывается и управляет всем созданием платежа
      */
     public void paymentProcessing(OrderCreatedEvent event) {
+        paymentMetrics.recordPaymentAttempt(); // Считаем попытку оплаты
+        long startTimePayment = System.currentTimeMillis();
+
         if (paymentRepository.existsByOrderId(event.orderId())) {
             log.info("Order {} already processed", event.orderId());
             return;
@@ -41,7 +47,12 @@ public class PaymentService {
             // Работа с кошельком
             walletService.paymentTransaction(event.userId(), event.amount());
             processPayment(payment, email);
+
+            // Метрики
+            long duration = System.currentTimeMillis() - startTimePayment;
+            paymentMetrics.recordPaymentSuccess(duration);
         } catch (Exception e) {
+            paymentMetrics.recordPaymentError(e);
             log.info("Payment ID={} for order ID={} is FAILED", payment.getId(), payment.getOrderId());
             failedPayment(payment, email);
         }

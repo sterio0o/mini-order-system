@@ -2,6 +2,7 @@ package dev.github.sterio0o.orderservice.service;
 
 import dev.github.sterio0o.common.events.OrderCreatedEvent;
 import dev.github.sterio0o.orderservice.exception.light.LightOrderNotFoundException;
+import dev.github.sterio0o.orderservice.exception.light.LightProductNotFoundException;
 import dev.github.sterio0o.orderservice.kafka.KafkaProducer;
 import dev.github.sterio0o.orderservice.model.dto.OrderItemRequestDto;
 import dev.github.sterio0o.orderservice.model.dto.OrderRequestDto;
@@ -10,7 +11,11 @@ import dev.github.sterio0o.orderservice.model.dto.product.ProductResponseDto;
 import dev.github.sterio0o.orderservice.model.entities.Order;
 import dev.github.sterio0o.orderservice.model.entities.OrderItem;
 import dev.github.sterio0o.orderservice.model.entities.OrderStatus;
+import dev.github.sterio0o.orderservice.model.entities.Product;
 import dev.github.sterio0o.orderservice.repository.OrderRepository;
+import dev.github.sterio0o.orderservice.repository.ProductRepository;
+import dev.github.sterio0o.orderservice.util.OrderMetrics;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,6 +35,13 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductService productService;
     private final KafkaProducer kafkaProducer;
+    private final OrderMetrics orderMetrics;
+
+    // init-метод для запуска сбора метрики
+    @PostConstruct
+    public void init() {
+        orderMetrics.pendingOrderGauge(orderRepository);
+    }
 
     // Получение заказа в виде OrderResponseDto
     public OrderResponseDto getOrderById(UUID id) {
