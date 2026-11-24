@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 public class OrderMetrics {
     private final Counter createAttempt;
     private final Counter createSuccess;
+    private final Counter cacheHit;
+    private final Counter cacheMiss;
     private final MeterRegistry registry;
 
     public OrderMetrics(MeterRegistry registry) {
@@ -20,6 +22,12 @@ public class OrderMetrics {
                 .register(registry);
         this.createSuccess = Counter.builder("order.create.success")
                 .description("Количество успешно созданных заказов")
+                .register(registry);
+        this.cacheHit = Counter.builder("order.cache.hit")
+                .description("Количество успешных извлечений данных из кеша")
+                .register(registry);
+        this.cacheMiss = Counter.builder("order.cache.miss")
+                .description("Количество раз когда данные были взяты не из кеша")
                 .register(registry);
     }
 
@@ -41,5 +49,13 @@ public class OrderMetrics {
                 repo -> repo.countByStatus(OrderStatus.PENDING_PAYMENT))
                 .description("Количество заказов, ожидающих оплату")
                 .register(registry);
+    }
+
+    public void recordCacheHit() {
+        cacheHit.increment();
+    }
+
+    public void recordCacheMiss() {
+        cacheMiss.increment();
     }
 }

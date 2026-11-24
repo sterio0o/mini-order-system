@@ -5,6 +5,7 @@ import dev.github.sterio0o.orderservice.model.dto.product.ProductRequestDto;
 import dev.github.sterio0o.orderservice.model.dto.product.ProductResponseDto;
 import dev.github.sterio0o.orderservice.model.entities.Product;
 import dev.github.sterio0o.orderservice.repository.ProductRepository;
+import dev.github.sterio0o.orderservice.util.OrderMetrics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,11 +24,12 @@ import java.util.UUID;
 public class ProductService {
     private final ProductRepository productRepository;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final OrderMetrics orderMetrics;
 
     private final static String CACHE_PREFIX = "products:cache:";
     private final static String COUNTER_PREFIX = "products:counter:";
 
-    private final static Integer NEED_COUNT_TO_CACHE = 3;
+    private final static Integer NEED_COUNT_TO_CACHE = 2000;
 
     public ProductResponseDto findProductInHotCache(UUID id) {
         String cacheKey = CACHE_PREFIX + id;
@@ -36,6 +38,7 @@ public class ProductService {
         ProductResponseDto product = (ProductResponseDto) redisTemplate.opsForValue().get(cacheKey);
         if (product != null) {
             log.info("Product {} найден в кеше", id);
+            orderMetrics.recordCacheHit();
             return product;
         }
 
@@ -44,6 +47,7 @@ public class ProductService {
                         "Product with ID=" + id + " not found")
                 );
         log.info("Product {} взят из БД", id);
+        orderMetrics.recordCacheMiss();
 
         product = ProductResponseDto.fromEntity(productDb);
 
