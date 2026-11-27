@@ -1,5 +1,5 @@
 global:
-  scrape_interval: 5s
+  scrape_interval: 5s # Как часто prometheus будет собирать метрики с экспортеров
 
 # Конфиг если приложение запускается в docker
 #scrape_configs:
